@@ -4,32 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="908ccf73-5bda-4f95-9961-0916a3fafdd9" name="Changes" comment="chore: update .gitignore with PyCharm-specific patterns&#10;&#10;- Added JetBrains/PyCharm specific ignore patterns">
-      <change afterPath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/codeStyles/codeStyleConfig.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/copilot.data.migration.agent.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/copilot.data.migration.ask.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/copilot.data.migration.ask2agent.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/copilot.data.migration.edit.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/prettier.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.npmrc" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.prettierignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.prettierrc.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.vscode/settings.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/backend/package.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/backend/src/main.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/packages/eslint-config-custom/index.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pnpm-lock.yaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pnpm-workspace.yaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/turbo.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-    </list>
+    <list default="true" id="908ccf73-5bda-4f95-9961-0916a3fafdd9" name="Changes" comment="chore(repo): initialize Turborepo monorepo structure and tooling&#10;&#10;This foundational commit scaffolds the entire SofIA project as a Turborepo monorepo, establishing the core structure and developer experience tooling.&#10;&#10;- Initializes a pnpm workspace managed by Turborepo.&#10;- Creates the standard `apps` and `packages` directory structure.&#10;- Sets up the Next.js `frontend` application.&#10;- Sets up the FastAPI `backend` application with a Poetry bridge.&#10;- Configures monorepo-wide Prettier." />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -110,7 +85,7 @@
       <workItem from="1760980844047" duration="147000" />
       <workItem from="1760980998610" duration="1896000" />
       <workItem from="1760982955805" duration="243000" />
-      <workItem from="1760983208919" duration="1369000" />
+      <workItem from="1760983208919" duration="1696000" />
     </task>
     <task id="LOCAL-00001" summary="chore: add pre-commit hooks for code quality and conventional commits&#10;&#10;&#10;- Added pre-commit-hooks for basic code quality checks&#10;- Added conventional-pre-commit hook to enforce conventional commit messages&#10;- This will help maintain consistent code quality and commit history">
       <option name="closed" value="true" />
@@ -128,7 +103,15 @@
       <option name="project" value="LOCAL" />
       <updated>1760975991341</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="chore(repo): initialize Turborepo monorepo structure and tooling&#10;&#10;This foundational commit scaffolds the entire SofIA project as a Turborepo monorepo, establishing the core structure and developer experience tooling.&#10;&#10;- Initializes a pnpm workspace managed by Turborepo.&#10;- Creates the standard `apps` and `packages` directory structure.&#10;- Sets up the Next.js `frontend` application.&#10;- Sets up the FastAPI `backend` application with a Poetry bridge.&#10;- Configures monorepo-wide Prettier.">
+      <option name="closed" value="true" />
+      <created>1760990576271</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1760990576271</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -148,6 +131,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="chore: add pre-commit hooks for code quality and conventional commits&#10;&#10;&#10;- Added pre-commit-hooks for basic code quality checks&#10;- Added conventional-pre-commit hook to enforce conventional commit messages&#10;- This will help maintain consistent code quality and commit history" />
     <MESSAGE value="chore: update .gitignore with PyCharm-specific patterns&#10;&#10;- Added JetBrains/PyCharm specific ignore patterns" />
-    <option name="LAST_COMMIT_MESSAGE" value="chore: update .gitignore with PyCharm-specific patterns&#10;&#10;- Added JetBrains/PyCharm specific ignore patterns" />
+    <MESSAGE value="chore(repo): initialize Turborepo monorepo structure and tooling&#10;&#10;This foundational commit scaffolds the entire SofIA project as a Turborepo monorepo, establishing the core structure and developer experience tooling.&#10;&#10;- Initializes a pnpm workspace managed by Turborepo.&#10;- Creates the standard `apps` and `packages` directory structure.&#10;- Sets up the Next.js `frontend` application.&#10;- Sets up the FastAPI `backend` application with a Poetry bridge.&#10;- Configures monorepo-wide Prettier." />
+    <option name="LAST_COMMIT_MESSAGE" value="chore(repo): initialize Turborepo monorepo structure and tooling&#10;&#10;This foundational commit scaffolds the entire SofIA project as a Turborepo monorepo, establishing the core structure and developer experience tooling.&#10;&#10;- Initializes a pnpm workspace managed by Turborepo.&#10;- Creates the standard `apps` and `packages` directory structure.&#10;- Sets up the Next.js `frontend` application.&#10;- Sets up the FastAPI `backend` application with a Poetry bridge.&#10;- Configures monorepo-wide Prettier." />
   </component>
 </project>
