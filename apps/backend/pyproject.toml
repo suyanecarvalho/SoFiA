@@ -1,0 +1,19 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "rifa-456",email = "rerserve@hotmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi (>=0.119.1,<0.120.0)",
+    "python-dotenv (>=1.1.1,<2.0.0)",
+    "uvicorn[standard] (>=0.38.0,<0.39.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
