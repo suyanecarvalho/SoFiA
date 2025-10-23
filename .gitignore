@@ -288,3 +288,5 @@ http-client.private.env.json
 .idea/ApifoxUploaderProjectSetting.xml
 
 node_modules/
+
+/apps/backend/src/data/
