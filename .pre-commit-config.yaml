@@ -15,8 +15,6 @@ repos:
         -   id: check-xml
         -   id: debug-statements
         -   id: destroyed-symlinks
-        -   id: end-of-file-fixer
-        -   id: trailing-whitespace
 
   -   repo: https://github.com/compilerla/conventional-pre-commit
       rev: v4.2.0
