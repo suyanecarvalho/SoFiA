@@ -1,5 +1,12 @@
-from database.connection import engine
-from database.models import Base
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
+from apps.backend.src.db.database.base import Base
+from apps.backend.src.db.database.connection import engine
+# noinspection PyUnusedImports
+from apps.backend.src.db.models import models as _
+
 
 def init_db():
     """

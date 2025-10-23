@@ -7,10 +7,10 @@ from sqlalchemy import (
     ForeignKey,
     Text,
 )
-from sqlalchemy.orm import declarative_base, relationship
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+from apps.backend.src.db.database.base import Base
 
-Base = declarative_base()
 
 class User(Base):
     __tablename__ = "users"

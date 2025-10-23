@@ -289,4 +289,4 @@ http-client.private.env.json
 
 node_modules/
 
-/apps/backend/src/data/
+*.db
