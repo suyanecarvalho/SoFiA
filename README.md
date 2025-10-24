@@ -2,18 +2,5 @@
 
 Soluções financeiras
 
-# turbo dev
 
-
-commit scopes
-
-frontend
-
-backend
-
-ui
-
-
--docs
-
--repo
+- pnpm turbo dev

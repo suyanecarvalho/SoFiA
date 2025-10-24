@@ -9,7 +9,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from apps.backend.src.db.database.base import Base
+from ..database.base import Base
 
 
 class User(Base):
@@ -21,11 +21,13 @@ class User(Base):
     updated_at = Column(DateTime, onupdate=func.now(), nullable=True)
     transactions = relationship("Transaction", back_populates="user")
 
+
 class Category(Base):
     __tablename__ = "categories"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, nullable=False)
     transactions = relationship("Transaction", back_populates="category")
+
 
 class Transaction(Base):
     __tablename__ = "transactions"
