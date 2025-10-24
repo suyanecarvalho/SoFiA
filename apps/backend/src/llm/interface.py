@@ -36,14 +36,14 @@ class LLMInterface(ABC):
         pass
 
     @abstractmethod
-    def create_transaction_from_prompt(self, prompt: str) -> Transaction:
+    def create_transaction_from_prompt(self, prompt: str) -> List[Transaction]:
         """
-        Parses a prompt, creates a new transaction, and saves it to the database.
+        Parses a prompt, creates new transactions, and saves them to the database.
 
         Args:
-            prompt: The user's description of a transaction.
+            prompt: The user's description of one or more transactions.
 
         Returns:
-            The newly created Pydantic Transaction object, including its database-generated ID.
+            A list of the newly created Pydantic Transaction objects.
         """
         pass

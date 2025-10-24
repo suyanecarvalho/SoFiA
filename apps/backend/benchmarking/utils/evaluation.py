@@ -40,17 +40,13 @@ def calculate_score(actual: Any, expected: Any, test_type: str, difficulty: str)
         return 0
     is_correct = False
     try:
-        if test_type == "get":
+        if test_type in ["get", "insert"]:
             if len(actual) != len(expected):
                 is_correct = False
             else:
                 actual_set = {normalize_transaction(t) for t in actual}
                 expected_set = {normalize_transaction(t) for t in expected}
                 is_correct = actual_set == expected_set
-        elif test_type == "insert":
-            norm_actual = normalize_transaction(actual)
-            norm_expected = normalize_transaction(expected)
-            is_correct = norm_actual == norm_expected
 
     except Exception:
         is_correct = False

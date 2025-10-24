@@ -1,6 +1,66 @@
 [
-  {"id": 1, "name": "Food & Drink"},
-  {"id": 2, "name": "Transport"},
-  {"id": 3, "name": "Groceries"},
-  {"id": 4, "name": "Entertainment"}
+  {
+    "id": 1,
+    "name": "Moradia"
+  },
+  {
+    "id": 2,
+    "name": "Supermercado"
+  },
+  {
+    "id": 3,
+    "name": "Restaurantes & Cafés"
+  },
+  {
+    "id": 4,
+    "name": "Transporte"
+  },
+  {
+    "id": 5,
+    "name": "Contas de Casa"
+  },
+  {
+    "id": 6,
+    "name": "Saúde"
+  },
+  {
+    "id": 7,
+    "name": "Lazer & Entretenimento"
+  },
+  {
+    "id": 8,
+    "name": "Compras"
+  },
+  {
+    "id": 9,
+    "name": "Cuidados Pessoais"
+  },
+  {
+    "id": 10,
+    "name": "Educação"
+  },
+  {
+    "id": 11,
+    "name": "Assinaturas & Serviços"
+  },
+  {
+    "id": 12,
+    "name": "Viagens"
+  },
+  {
+    "id": 13,
+    "name": "Impostos & Taxas"
+  },
+  {
+    "id": 14,
+    "name": "Investimentos"
+  },
+  {
+    "id": 15,
+    "name": "Presentes & Doações"
+  },
+  {
+    "id": 16,
+    "name": "Pets"
+  }
 ]

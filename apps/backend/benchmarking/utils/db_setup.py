@@ -6,6 +6,8 @@ from typing import Dict, Any
 
 from apps.backend.src.db.database.base import Base
 from apps.backend.src.db.models import models
+from apps.backend.src.db.models.models import User
+
 
 def create_in_memory_db_session():
     """Creates a fresh, in-memory SQLite database and returns a session factory."""
@@ -32,9 +34,16 @@ def seed_base_data(db: Session, base_data_dir: str):
                         db.add(model(**item_data))
 
     db.commit()
+
 def setup_test_case_state(db: Session, setup_data: Dict[str, Any]):
     """Adds test-case specific data to the database."""
+    test_user = User(id=1, name="Test User")
+    db.add(test_user)
+    db.commit()
+    db.refresh(test_user)
+
     if 'transactions' in setup_data:
         for transaction_data in setup_data['transactions']:
+            transaction_data['user_id'] = test_user.id
             db.add(models.Transaction(**transaction_data))
     db.commit()
