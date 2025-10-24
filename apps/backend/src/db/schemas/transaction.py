@@ -18,4 +18,4 @@ class Transaction(TransactionBase):
     updated_at: Optional[datetime.datetime]
 
     class Config:
-        orm_mode = True
+        from_attributes = True
