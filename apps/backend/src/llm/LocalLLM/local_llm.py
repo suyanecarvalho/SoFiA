@@ -6,7 +6,11 @@ from apps.backend.src.db.models import models
 #TODO implement LocalLLM
 class LocalLLM(LLMInterface):
     """
+    An interface for a locally-run LLM (e.g., via Ollama).
     """
+    def __init__(self, model_name: str):
+        self.model_name = model_name
+
     def get_structured_answer(self, prompt: str) -> List[models.Transaction]:
         return []
 

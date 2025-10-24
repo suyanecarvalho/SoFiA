@@ -290,3 +290,4 @@ http-client.private.env.json
 node_modules/
 
 *.db
+/apps/backend/benchmarking/benchmark_results.csv
