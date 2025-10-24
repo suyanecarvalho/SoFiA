@@ -20,7 +20,6 @@ def seed_base_data(db: Session, base_data_dir: str):
     """
     files_to_load = {
         "categories": models.Category,
-        "transactions": models.Transaction
     }
     for filename, model in files_to_load.items():
         file_path = os.path.join(base_data_dir, f"{filename}.json")

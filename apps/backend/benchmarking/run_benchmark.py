@@ -67,9 +67,14 @@ def main():
                 actual_output = None
                 ui.print_warning(f"  Execution error in test '{case['id']}': {e}")
             duration = time.perf_counter() - start_time
-
-            score = evaluation.evaluate_correctness(actual_output, case["expected"], case["type"])
-            results.append({ "model_name": model_name, "test_case_id": case["id"], "score": score, "duration_seconds": duration, })
+            score = evaluation.calculate_score(actual_output, case["expected"], case["type"], case["difficulty"])
+            results.append({
+                "model_name": model_name,
+                "test_case_id": case["id"],
+                "difficulty": case.get("difficulty", "unknown"),
+                "score": score,
+                "duration_seconds": duration,
+            })
             db.close()
 
     if not results:
