@@ -1,11 +1,14 @@
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
+sys.path.append(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+)
 
 from apps.backend.src.db.database.base import Base
 from apps.backend.src.db.database.connection import engine
+
 # noinspection PyUnusedImports
-from apps.backend.src.db.models import models as _
 
 
 def init_db():
@@ -18,6 +21,7 @@ def init_db():
         print("Database tables created successfully.")
     except Exception as e:
         print(f"An error occurred: {e}")
+
 
 if __name__ == "__main__":
     init_db()

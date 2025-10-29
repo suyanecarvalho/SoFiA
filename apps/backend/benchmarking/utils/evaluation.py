@@ -1,5 +1,6 @@
 from typing import Any
 
+
 def normalize_transaction(t: Any) -> tuple:
     """Converts a transaction object or dict into a standardized, comparable tuple."""
     if isinstance(t, dict):
@@ -9,15 +10,10 @@ def normalize_transaction(t: Any) -> tuple:
             t.get("amount"),
             t.get("description"),
             t.get("is_superfluous", False),
-            category_name
+            category_name,
         )
     else:
-        return (
-            t.amount,
-            t.description,
-            t.is_superfluous,
-            t.category.name
-        )
+        return t.amount, t.description, t.is_superfluous, t.category.name
 
 
 def calculate_score(actual: Any, expected: Any, test_type: str, difficulty: str) -> int:

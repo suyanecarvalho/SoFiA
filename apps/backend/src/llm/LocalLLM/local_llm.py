@@ -1,13 +1,15 @@
-from typing import List, Optional
+from typing import List
 
 from apps.backend.src.llm.interface import LLMInterface
 from apps.backend.src.db.models import models
 
-#TODO implement LocalLLM
+
+# TODO implement LocalLLM
 class LocalLLM(LLMInterface):
     """
     An interface for a locally-run LLM (e.g., via Ollama).
     """
+
     def __init__(self, model_name: str):
         self.model_name = model_name
 

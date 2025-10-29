@@ -2,7 +2,7 @@ from .DummyLLM.dummy_llm import DummyLLM
 from .LocalLLM.local_llm import LocalLLM
 from .RemoteLLM.remote_llm import RemoteLLM
 from .interface import LLMInterface
-import os
+
 
 def get_llm_instance(model_type: str, identifier: str = None) -> LLMInterface:
     """

@@ -1,13 +1,15 @@
-from typing import List, Optional
+from typing import List
 
 from apps.backend.src.llm.interface import LLMInterface
 from apps.backend.src.db.models import models
 
-#TODO implement RemoteLLM
+
+# TODO implement RemoteLLM
 class RemoteLLM(LLMInterface):
     """
     An interface for a remote, API-key based LLM (e.g., OpenAI, Groq).
     """
+
     def __init__(self, api_key: str):
         self.api_key = api_key
 

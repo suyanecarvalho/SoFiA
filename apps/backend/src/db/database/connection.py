@@ -10,12 +10,10 @@ DATABASE_PATH = DATA_DIR / "sofia.db"
 DATABASE_URL = f"sqlite:///{DATABASE_PATH}"
 os.makedirs(DATA_DIR, exist_ok=True)
 
-engine = create_engine(
-    DATABASE_URL,
-    connect_args={"check_same_thread": False}
-)
+engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 
 def get_db():
     db = SessionLocal()

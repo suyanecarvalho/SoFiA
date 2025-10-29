@@ -15,14 +15,32 @@ sys.path.append(APP_ROOT)
 def main():
     parser = argparse.ArgumentParser(
         description="Run LLM Benchmarks for SofIA.",
-        formatter_class=argparse.RawTextHelpFormatter
+        formatter_class=argparse.RawTextHelpFormatter,
     )
-    parser.add_argument("-l", "--local", nargs='+', metavar="MODEL_NAME",
-                        help="Benchmark one or more local models by name (e.g., -l mistral llama3).")
-    parser.add_argument("-r", "--remote", nargs='+', metavar="API_KEY",
-                        help="Benchmark one or more remote models by API key (e.g., -r sk-...).")
-    parser.add_argument("--dataset", default="dataset.jsonl", help="Path to the dataset file (default: dataset.jsonl).")
-    parser.add_argument("--output", default="benchmark_results.csv", help="Path to save the CSV results (default: benchmark_results.csv).")
+    parser.add_argument(
+        "-l",
+        "--local",
+        nargs="+",
+        metavar="MODEL_NAME",
+        help="Benchmark one or more local models by name (e.g., -l mistral llama3).",
+    )
+    parser.add_argument(
+        "-r",
+        "--remote",
+        nargs="+",
+        metavar="API_KEY",
+        help="Benchmark one or more remote models by API key (e.g., -r sk-...).",
+    )
+    parser.add_argument(
+        "--dataset",
+        default="dataset.jsonl",
+        help="Path to the dataset file (default: dataset.jsonl).",
+    )
+    parser.add_argument(
+        "--output",
+        default="benchmark_results.csv",
+        help="Path to save the CSV results (default: benchmark_results.csv).",
+    )
     args = parser.parse_args()
     models_to_run = []
     if args.local:
@@ -33,14 +51,18 @@ def main():
     if args.remote:
         for i, api_key in enumerate(args.remote):
             instance = get_llm_instance("remote", api_key)
-            models_to_run.append({"name": f"remote-{i+1}", "instance": instance})
+            models_to_run.append({"name": f"remote-{i + 1}", "instance": instance})
 
     if not models_to_run:
-        ui.print_warning("No local or remote models specified. Running benchmark with DummyLLM.")
+        ui.print_warning(
+            "No local or remote models specified. Running benchmark with DummyLLM."
+        )
         instance = get_llm_instance("dummy")
         models_to_run.append({"name": "dummy", "instance": instance})
 
-    ui.print_info(f"Models to benchmark: {', '.join([m['name'] for m in models_to_run])}")
+    ui.print_info(
+        f"Models to benchmark: {', '.join([m['name'] for m in models_to_run])}"
+    )
     ui.print_info(f"Using dataset: {args.dataset}")
     with open(args.dataset, "r") as f:
         test_cases = [json.loads(line) for line in f]
@@ -62,19 +84,25 @@ def main():
                 if case["type"] == "get":
                     actual_output = model_instance.get_structured_answer(case["prompt"])
                 elif case["type"] == "insert":
-                    actual_output = model_instance.create_transaction_from_prompt(case["prompt"])
+                    actual_output = model_instance.create_transaction_from_prompt(
+                        case["prompt"]
+                    )
             except Exception as e:
                 actual_output = None
                 ui.print_warning(f"  Execution error in test '{case['id']}': {e}")
             duration = time.perf_counter() - start_time
-            score = evaluation.calculate_score(actual_output, case["expected"], case["type"], case["difficulty"])
-            results.append({
-                "model_name": model_name,
-                "test_case_id": case["id"],
-                "difficulty": case.get("difficulty", "unknown"),
-                "score": score,
-                "duration_seconds": duration,
-            })
+            score = evaluation.calculate_score(
+                actual_output, case["expected"], case["type"], case["difficulty"]
+            )
+            results.append(
+                {
+                    "model_name": model_name,
+                    "test_case_id": case["id"],
+                    "difficulty": case.get("difficulty", "unknown"),
+                    "score": score,
+                    "duration_seconds": duration,
+                }
+            )
             db.close()
 
     if not results:
@@ -84,6 +112,7 @@ def main():
     results_df = pd.DataFrame(results)
     results_df.to_csv(args.output, index=False)
     ui.print_success(f"Benchmark complete. Results saved to {args.output}")
+
 
 if __name__ == "__main__":
     main()
