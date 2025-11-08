@@ -1,21 +1,42 @@
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, Union, Literal, Annotated
 import datetime
+import enum
 
 
-class TransactionBase(BaseModel):
-    amount: int = Field(..., description="The transaction amount in cents")
+class TransactionType(str, enum.Enum):
+    EXPENSE = "expense"
+    INCOME = "income"
+
+
+class TransactionCore(BaseModel):
+    amount: Annotated[
+        int,
+        Field(gt=0, description="The transaction amount in cents (always positive)"),
+    ]
     description: str
+
+
+class ExpenseCreate(TransactionCore):
     category_id: int
     is_superfluous: bool = False
+    transaction_type: Literal[TransactionType.EXPENSE] = TransactionType.EXPENSE
 
 
-class TransactionCreate(TransactionBase):
-    user_id: int = 1
+class IncomeCreate(TransactionCore):
+    transaction_type: Literal[TransactionType.INCOME] = TransactionType.INCOME
 
 
-class Transaction(TransactionBase):
+TransactionCreate = Annotated[
+    Union[ExpenseCreate, IncomeCreate], Field(discriminator="transaction_type")
+]
+
+
+class Transaction(TransactionCore):
     id: int
+    transaction_type: TransactionType
+    category_id: Optional[int] = None
+    is_superfluous: Optional[bool] = None
     user_id: int
     created_at: Optional[datetime.datetime]
     updated_at: Optional[datetime.datetime]
