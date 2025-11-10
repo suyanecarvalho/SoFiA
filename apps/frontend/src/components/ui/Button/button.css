@@ -1,0 +1,15 @@
+.buttonStyle {
+    border: none;
+    background-color: transparent;
+    color: #B9D8FF;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: 10px;
+    width: 100%;
+}
+
+.buttonStyle:hover {
+    cursor: pointer;
+    background-color: #365784;
+}
