@@ -4,21 +4,38 @@ from sklearn.linear_model import LogisticRegression
 import joblib
 
 # ====== 1️⃣ Carregar dados do JSON ======
-with open(r"C:\Users\beand\Documents\SoFIA\SoFiA\docs\classification.json", "r", encoding="utf-8") as f:
+with open(r"../../../docs/classification.json", "r", encoding="utf-8") as f:
     data = json.load(f)
 
 # Extrair frases e rótulos
-frases = [item["message"] for item in data]
-rotulos = [item["class"] for item in data]
+phrases = [item["message"] for item in data]
+transaction = [item["transaction"] for item in data]
+type_transaction = [item["type_transaction"] for item in data]
+category= [item.get("category") for item in data]
 
-# ====== 2️⃣ Treinar modelo ======
+# ====== 2️⃣ Treinar modelos ======
 vectorizer = TfidfVectorizer()
-X = vectorizer.fit_transform(frases)
+X = vectorizer.fit_transform(phrases)
 
-clf = LogisticRegression()
-clf.fit(X, rotulos)
+clf_transaction = LogisticRegression()
+clf_transaction.fit(X, transaction)
+
+clf_type = LogisticRegression()
+clf_type.fit(X, type_transaction)
+
+# treinar modelo para categoria e Filtrar apenas as entradas com categoria não nula
+data_category = [(phrases[i], category[i]) for i in range(len(phrases)) if category[i] is not None]
+
+phrases_cat= [d[0] for d in data_category] 
+category_cat = [d[1] for d in data_category]  
+X_cat = vectorizer.transform(phrases_cat)
+clf_category = LogisticRegression()
+clf_category.fit(X_cat, category_cat)
 
 # ====== 3️⃣ Salvar modelo treinado ======
-joblib.dump((vectorizer, clf), "intent_model.joblib")
+joblib.dump((vectorizer), "vetorizer.joblib")
+joblib.dump((clf_transaction), "model_transaction.joblib")
+joblib.dump((clf_type), "model_type_transaction.joblib")
+joblib.dump((clf_category), "model_category.joblib")
 
-print("✅ Modelo treinado e salvo como intent_model.joblib")
+print("✅ todos os Modelos treinados e salvo")

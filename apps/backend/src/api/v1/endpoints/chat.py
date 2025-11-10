@@ -1,3 +1,5 @@
+from pathlib import Path
+import re
 from fastapi import APIRouter, HTTPException, status
 from typing import Any
 from pydantic import BaseModel
@@ -6,18 +8,24 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain.messages import SystemMessage, HumanMessage
 import os
 import joblib
+
 os.environ["OLLAMA_NO_GPU"] = "1"
 
 router = APIRouter()
 
 # ====== CARREGAR MODELO DE INTENÇÃO ======
 try:
-    vectorizer, clf = joblib.load(r"C:\Users\beand\Documents\SoFIA\SoFiA\apps\backend\train_model\intent_model.joblib")
-    print("✅ Modelo de intenção carregado com sucesso.")
+    models_path = os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", "train_model")
+    
+    vectorizer = joblib.load(os.path.join(models_path, "vetorizer.joblib"))
+    clf_transaction = joblib.load(os.path.join(models_path, "model_transaction.joblib"))
+    clf_type_transaction = joblib.load(os.path.join(models_path, "model_type_transaction.joblib"))
+    clf_category = joblib.load(os.path.join(models_path, "model_category.joblib"))
+    
+    print("✅ Modelos de intenção carregado com sucesso.")
 except Exception as e:
-    print("⚠️ Erro ao carregar modelo de intenção:", e)
-    vectorizer = None
-    clf = None
+    print("⚠️ Erro ao carregar modelos de intenção:", e)
+    vectorizer =clf_transaction = clf_type_transaction = clf_category = None
 
 llm = OllamaLLM(model="mistral", temperature=0)
 
@@ -38,7 +46,6 @@ messages = [
 prompt = ChatPromptTemplate.from_messages(messages)
 chain = prompt | llm
 
-
 class ChatRequest(BaseModel):
     input: str
 
@@ -58,29 +65,28 @@ def chat_with_model(request: ChatRequest) -> Any:
    
     try:
         # --- 1️⃣ Verifica se o modelo está carregado ---
-        if vectorizer is None or clf is None:
-            raise ValueError("Modelo de intenção não carregado.")
-
-        # --- 2️⃣ Predição da intenção ---
+        if not all ([vectorizer, clf_transaction, clf_type_transaction, clf_category]):
+            raise ValueError("Modelos de intenção não carregado.")
+       
+        #vetorizar o input do usuário
         X_input = vectorizer.transform([request.input])
-        tipo = clf.predict(X_input)[0]  # pode ser "Busca", "Entrada", "Investimento", etc.
-
-        # --- 3️⃣ Mensagem base dependendo da classe ---
-        mensagens_base = {
-            "busca": "🔎 Entendido, vou buscar as informações solicitadas.",
-            "entrada": "✏️ Entendido, vou registrar a nova transação.",
-            "resumo": "📊 Entendido, vou gerar um resumo financeiro.",
-        }
-
-        resposta_base = mensagens_base.get(tipo.lower(), f"🤖 Entendido, sua intenção foi classificada como: {tipo}.")
-
-        # --- 4️⃣ Chamada opcional ao LLM ---
+        
+        # --- 2️⃣ Predição ---
+        transaction = clf_transaction.predict(X_input)[0]
+        type_transaction = clf_type_transaction.predict(X_input)[0]
+        category = None
+        if type_transaction == "gasto":
+            category = clf_category.predict(X_input)[0]
+            
         resposta_llm = chain.invoke({"input": request.input})
-        resposta_final = f"{resposta_base}\n\n💬 {resposta_llm}"
+        response_output = [f"Transação: {transaction.lower()} ", f"Tipo: {type_transaction.lower()} "]
+        if category:
+            response_output.append(f"Categoria: {category}")
+        
+        response_output.append("Resposta do assistente:")
+        response_output.append(str(resposta_llm))
 
-        return ChatResponse(
-            resposta=str(resposta_final),
-        )
+        return ChatResponse(resposta=str(response_output))
 
     except Exception as e:
         raise HTTPException(
