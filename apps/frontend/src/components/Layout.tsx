@@ -1,17 +1,37 @@
 import { NavLink } from "react-router-dom";
-import { Home, MessageSquare, LayoutDashboard, Settings, User } from "lucide-react";
+import { Home, MessageSquare, LayoutDashboard, Settings, User, ChevronLeft, ChevronRight } from "lucide-react";
+import { useState } from "react";
 import { cn } from "../lib/utils";
+import { Button } from "../components/ui/button";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
   return (
     <div className="flex h-screen bg-background overflow-hidden">
       {/* Sidebar */}
-      <aside className="w-[180px] bg-sidebar flex flex-col">
-        <div className="p-6">
-          <span className="text-sm text-sidebar-foreground opacity-50">Chat</span>
+      <aside className={cn(
+        "bg-sidebar flex flex-col transition-all duration-300" ,
+        isCollapsed ? "w-[70px]" : "w-[180px]"
+      )}>
+        <div className="p-3 flex items-center justify-between border-b border-sidebar-border">
+          {!isCollapsed && (
+            <span className="text-sm text-sidebar-foreground opacity-50">Chat</span>
+          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsCollapsed(!isCollapsed)}
+          >
+            {isCollapsed ? (
+              <ChevronRight className="h-4 w-4"/>
+            ) : (
+              <ChevronLeft className="h-4 w-4"/>
+            )}
+          </Button>
         </div>
-        
-        <nav className="flex-1 px-3 space-y-1">
+
+        <nav className="flex-1 px-3 space-y-1 mt-3">
           <NavLink
             to="/"
             className={({ isActive }) =>
@@ -19,12 +39,14 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                 "flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-all",
                 isActive
                   ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+                  : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
+                isCollapsed && "justify-center"
               )
             }
+            title={isCollapsed ? "Início" : undefined}
           >
             <Home className="w-5 h-5" />
-            Início
+            {!isCollapsed && "Início"}
           </NavLink>
           
           <NavLink
@@ -34,12 +56,14 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                 "flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-all",
                 isActive
                   ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+                  : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
+                isCollapsed && "justify-center"
               )
             }
+            title={isCollapsed ? "Chat" : undefined}
           >
             <MessageSquare className="w-5 h-5" />
-            Chat
+            {!isCollapsed && "Chat"}
           </NavLink>
           
           <NavLink
@@ -49,12 +73,14 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                 "flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-all",
                 isActive
                   ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+                  : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
+                isCollapsed && "justify-center"
               )
             }
+            title={isCollapsed ? "Dashboard" : undefined}
           >
             <LayoutDashboard className="w-5 h-5" />
-            Dashboard
+            {!isCollapsed && "Dashboard"}
           </NavLink>
         </nav>
 
@@ -66,12 +92,14 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                 "flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-all",
                 isActive
                   ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+                  : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
+                isCollapsed && "justify-center"
               )
             }
+            title={isCollapsed ? "Ajustes" : undefined}
           >
             <Settings className="w-5 h-5" />
-            Ajustes
+            {!isCollapsed && "Ajustes"}
           </NavLink>
           
           <NavLink
@@ -81,12 +109,14 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                 "flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-all",
                 isActive
                   ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+                  : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
+                isCollapsed && "justify-center"
               )
             }
+            title={isCollapsed ? "Perfil" : undefined}
           >
             <User className="w-5 h-5" />
-            Perfil
+            {!isCollapsed && "Perfil"}
           </NavLink>
         </div>
       </aside>
