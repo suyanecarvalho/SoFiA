@@ -70,7 +70,6 @@ class ChatResponse(BaseModel):
 def chat_with_model(request: ChatRequest) -> Any:
    
     try:
-        # ---  Verifica se o modelo está carregado ---
         if not all ([vectorizer, clf_transaction, clf_type_transaction, clf_category]):
             raise ValueError("Modelos de intenção não carregado.")
        
@@ -104,9 +103,9 @@ def chat_with_model(request: ChatRequest) -> Any:
             resposta_base = "🤔 Não entendi muito bem sua intenção. Pode reformular?"
 
         # se tivermos categoria detectados, acrescenta na mensagem para ambos busca/entrada
-            if category:
+        if category:
                 resposta_base += f" na categoria {category}"
-            if transaction_proba and type_proba and category_proba:
+        if transaction_proba and type_proba and category_proba:
                 resposta_base += f" .(Confiança transação: {transaction_proba:.0%},tipo:{type_proba:.0%},categoria:{category_proba:.0%})"
 
 
