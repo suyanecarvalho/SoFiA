@@ -5,8 +5,8 @@ description = ""
 authors = [
     {name = "rifa-456",email = "rerserve@hotmail.com"}
 ]
-readme = "README.md"
-requires-python = ">=3.12"
+
+requires-python = ">=3.12,<4.0.0"
 package-mode = false
 dependencies = [
     "fastapi (>=0.119.1,<0.120.0)",
@@ -18,7 +18,12 @@ dependencies = [
     "tdqm (>=0.0.1,<0.0.2)",
     "black (>=25.9.0,<26.0.0)",
     "plotly (>=6.3.1,<7.0.0)",
-    "ruff (>=0.14.4,<0.15.0)"
+    "ollama (>=0.6.0,<0.7.0)",
+    "pull (>=0.0.1,<0.0.2)",
+    "mistral (>=21.0.0,<22.0.0)",
+    "scikit-learn (>=1.7.2,<2.0.0)",
+    "langchain-ollama (>=1.0.0,<2.0.0)",
+    "langchain (>=1.0.5,<2.0.0)"
 ]
 
 
