@@ -1,5 +1,7 @@
+# --- START OF FILE api/endpoints/transactions.py ---
+
 from typing import List, Optional
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 import datetime
 
@@ -10,12 +12,20 @@ from ....db.database.connection import get_db
 router = APIRouter()
 
 
-@router.post("/", response_model=transaction_schema.Transaction)
+@router.post(
+    "/",
+    response_model=transaction_schema.Transaction,
+    status_code=status.HTTP_201_CREATED,
+)
 def create_new_transaction(
-    transaction: transaction_schema.TransactionCreate, db: Session = Depends(get_db)
+    transaction: transaction_schema.TransactionCreate,
+    db: Session = Depends(get_db),
 ):
     """
-    Create a new transaction.
+    Create a new transaction (either an expense or an income).
+
+    - To create an **expense**, provide `transaction_type: "expense"`, a `category_id`, and optionally `is_superfluous`.
+    - To create an **income**, provide `transaction_type: "income"` and omit the category and superfluous fields.
     """
     return crud_transaction.create_transaction(db=db, transaction=transaction)
 
@@ -28,10 +38,11 @@ def read_transactions(
     date_to: Optional[datetime.date] = None,
     category_id: Optional[int] = None,
     is_superfluous: Optional[bool] = None,
+    transaction_type: Optional[transaction_schema.TransactionType] = None,
     db: Session = Depends(get_db),
 ):
     """
-    Retrieve transactions.
+    Retrieve transactions with powerful filtering options.
     """
     transactions = crud_transaction.get_transactions(
         db,
@@ -41,5 +52,6 @@ def read_transactions(
         date_to=date_to,
         category_id=category_id,
         is_superfluous=is_superfluous,
+        transaction_type=transaction_type,
     )
     return transactions
