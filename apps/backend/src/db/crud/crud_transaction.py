@@ -22,11 +22,12 @@ def get_transactions(
     date_to: Optional[datetime.date] = None,
     category_id: Optional[int] = None,
     is_superfluous: Optional[bool] = None,
+    transaction_type: Optional[str] = None,
 ):
     """
     Retrieve transactions with optional filtering.
     """
-    query = db.query(models.Transaction)
+    query = db.query(models.Transaction).order_by(models.Transaction.created_at.desc())
     if date_from:
         query = query.filter(models.Transaction.created_at >= date_from)
     if date_to:
@@ -37,6 +38,8 @@ def get_transactions(
         query = query.filter(models.Transaction.category_id == category_id)
     if is_superfluous is not None:
         query = query.filter(models.Transaction.is_superfluous == is_superfluous)
+    if transaction_type:
+        query = query.filter(models.Transaction.transaction_type == transaction_type)
 
     return query.offset(skip).limit(limit).all()
 
