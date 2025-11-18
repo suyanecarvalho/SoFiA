@@ -9,6 +9,10 @@ __pycache__/
 #models
 *.joblib
 
+.vscode/*
+.turbo/*
+.history/*
+
 # Distribution / packaging
 .Python
 build/
