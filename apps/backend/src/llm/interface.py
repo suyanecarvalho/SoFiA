@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List
-from apps.backend.src.db.schemas.transaction import Transaction
+from src.db.schemas.transaction import Transaction
 
 
 class LLMInterface(ABC):

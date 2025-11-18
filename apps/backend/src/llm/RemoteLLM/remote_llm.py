@@ -1,7 +1,7 @@
 from typing import List
 
-from apps.backend.src.llm.interface import LLMInterface
-from apps.backend.src.db.models import models
+from src.llm.interface import LLMInterface
+from src.db.models import models
 
 
 # TODO implement RemoteLLM
