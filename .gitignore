@@ -298,3 +298,6 @@ node_modules/
 /apps/backend/benchmarking/benchmark_results.csv
 
 .turbo/
+
+promptBackend.py
+promptFrontend.py
