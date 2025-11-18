@@ -64,7 +64,7 @@ class ChatResponse(BaseModel):
 
 
 @router.post(
-    "/",
+    "/message",
     response_model=ChatResponse,
     status_code=status.HTTP_200_OK,
     summary="Enviar mensagem ao chatbot",

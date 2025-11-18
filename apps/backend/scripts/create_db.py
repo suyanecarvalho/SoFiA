@@ -1,14 +1,9 @@
 import sys
 import os
-
-sys.path.append(
-    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-)
-
-from apps.backend.src.db.database.base import Base
-from apps.backend.src.db.database.connection import engine
-
-# noinspection PyUnusedImports
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+from src.db.database.base import Base
+from src.db.database.connection import engine
+from src.db.models.models import Category, Transaction, User
 
 
 def init_db():

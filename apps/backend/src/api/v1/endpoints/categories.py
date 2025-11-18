@@ -10,7 +10,7 @@ router = APIRouter()
 
 
 @router.post(
-    "/", response_model=category_schema.Category, status_code=status.HTTP_201_CREATED
+    "", response_model=category_schema.Category, status_code=status.HTTP_201_CREATED
 )
 def create_new_category(
     category: category_schema.CategoryCreate, db: Session = Depends(get_db)
@@ -26,7 +26,7 @@ def create_new_category(
     return crud_category.create_category(db=db, category=category)
 
 
-@router.get("/", response_model=List[category_schema.Category])
+@router.get("", response_model=List[category_schema.Category])
 def read_categories(
     skip: int = 0,
     limit: int = 100,
