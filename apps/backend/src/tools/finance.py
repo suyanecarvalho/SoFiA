@@ -13,6 +13,7 @@ class ExpenseTool(BaseTool):
     name = "expense"
     def __init__(self, service: TransactionService):
         self.service = service
+
     @property
     def schema(self) -> Dict[str, Any]:
         categories = self.service.get_all_category_names()
@@ -47,51 +48,41 @@ class ExpenseTool(BaseTool):
     ) -> str:
         """
         Generate extraction prompt for expense data.
-
-        Args:
-            message: User's input message
-            partial: Previously collected parameters (for multi-turn)
+        Allows partial extraction without refusal logic.
         """
         categories = self.service.get_all_category_names()
         cat_list = "\n".join(f"  - {cat}" for cat in categories)
         partial_section = ""
         if partial:
-            partial_section = f"\n\nALREADY COLLECTED IN PREVIOUS MESSAGES:\n{json.dumps(partial, indent=2, ensure_ascii=False)}\n"
-        return f"""You are extracting structured data for an EXPENSE transaction (money spent).
+            partial_section = f"\n\nALREADY COLLECTED DATA (Do not change these unless the user explicitly corrects them):\n{json.dumps(partial, indent=2, ensure_ascii=False)}\n"
+
+        return f"""You are extracting structured data for an EXPENSE transaction.
             USER MESSAGE: "{message}"{partial_section}
-            
-            AVAILABLE CATEGORIES (you MUST choose exactly one from this list):
+
+            AVAILABLE CATEGORIES (Try to map to one of these, otherwise omit category):
             {cat_list}
-            
-            REQUIRED FIELDS:
-            - amount (integer, in cents): Must be explicitly stated by user. 
-              Conversion examples: R$119.99 → 11999, R$50 → 5000, 150 reais → 15000
-            - description (string): What was purchased or paid for
-            - category_name (string): MUST be one of the categories listed above (exact match)
-            - is_superfluous (boolean): Only true if user explicitly indicates this is unnecessary/impulsive/a want
-            
-            STRICT EXTRACTION RULES:
-            1. If amount is NOT explicitly stated or unclear → {{"refusal_reason": "missing_amount"}}
-            2. If you cannot confidently map to a category from the list → {{"refusal_reason": "missing_category"}}
-            3. If description is missing or unclear → {{"refusal_reason": "missing_description"}}
-            4. NEVER guess or estimate values
-            5. If already collected data exists, extract ONLY the new fields from current message
-            
+
+            FIELDS TO EXTRACT:
+            - amount (integer, in cents): E.g., R$119.99 → 11999.
+            - description (string): What was bought.
+            - category_name (string): Must match the list above exactly.
+            - is_superfluous (boolean): True if the user implies it was unnecessary/impulsive ("didn't need it", "guilty", "expensive").
+
+            INSTRUCTIONS:
+            1. Extract ANY fields explicitly stated in the message.
+            2. If a field is missing or unclear, OMIT it from the JSON.
+            3. DO NOT return an error or refusal. Return partial JSON if necessary.
+            4. If data was already collected, merge it with new info (new info takes precedence).
+
             EXAMPLES:
-            
+
             Input: "Bought a dress for R$120 at Shein"
             Output: {{"amount": 12000, "description": "dress", "category_name": "Lazer & Entretenimento", "is_superfluous": false}}
-            
-            Input: "It was at Shein and I feel bad because I have too many"
-            Output: {{"refusal_reason": "missing_amount"}}
-            
-            Input: "120 reais" (with partial context: {{"description": "dress", "is_superfluous": true}})
+
+            Input: "120 reais" (Context: description=makeup was already known)
             Output: {{"amount": 12000}}
-            
-            Input: "Yesterday I bought makeup"
-            Output: {{"refusal_reason": "missing_amount"}}
-            
-            OUTPUT ONLY VALID JSON (no markdown, no explanations):"""
+
+            OUTPUT ONLY VALID JSON:"""
 
     def execute(self, params: Dict[str, Any], user_id: int) -> Tuple[str, str]:
         params["transaction_type"] = "expense"
@@ -102,7 +93,7 @@ class ExpenseTool(BaseTool):
             if category:
                 params["category_id"] = category.id
             else:
-                raise ValueError(f"Category '{cat_name}' not found.")
+                raise ValueError(f"Category '{cat_name}' not found in database.")
         adapter = TypeAdapter(transaction_schema.TransactionCreate)
         validated_data = adapter.validate_python(params)
         tx = self.service.create_transaction(user_id=user_id, transaction_data=validated_data)
@@ -136,47 +127,30 @@ class IncomeTool(BaseTool):
             message: str,
             partial: Optional[Dict[str, Any]] = None
     ) -> str:
-        """
-        Generate extraction prompt for income data.
-
-        Args:
-            message: User's input message
-            partial: Previously collected parameters (for multi-turn)
-        """
         partial_section = ""
         if partial:
-            partial_section = f"\n\nALREADY COLLECTED IN PREVIOUS MESSAGES:\n{json.dumps(partial, indent=2, ensure_ascii=False)}\n"
+            partial_section = f"\n\nALREADY COLLECTED DATA:\n{json.dumps(partial, indent=2, ensure_ascii=False)}\n"
 
-        return f"""You are extracting structured data for an INCOME transaction (money received).
-
+        return f"""You are extracting structured data for an INCOME transaction.
         USER MESSAGE: "{message}"{partial_section}
-        
-        REQUIRED FIELDS:
-        - amount (integer, in cents): Must be explicitly stated by user.
-          Conversion examples: R$4500 → 450000, R$150 → 15000, 1000 reais → 100000
-        - description (string): Source of the money (salary, payment, gift, sale, etc)
-        
-        STRICT EXTRACTION RULES:
-        1. If amount is NOT explicitly stated or unclear → {{"refusal_reason": "missing_amount"}}
-        2. If description is missing or unclear → {{"refusal_reason": "missing_description"}}
-        3. NEVER guess or estimate values
-        4. If already collected data exists, extract ONLY the new fields from current message
-        
+
+        FIELDS TO EXTRACT:
+        - amount (integer, in cents): E.g., R$100.00 → 10000
+        - description (string): Source (salary, gift, etc)
+
+        INSTRUCTIONS:
+        1. Extract ANY fields explicitly stated.
+        2. If a field is missing, OMIT it from the JSON.
+        3. DO NOT return an error or refusal. Return partial JSON.
+
         EXAMPLES:
-        
-        Input: "Received my salary of R$4500"
-        Output: {{"amount": 450000, "description": "salary"}}
-        
-        Input: "Got a birthday gift"
-        Output: {{"refusal_reason": "missing_amount"}}
-        
-        Input: "4500 reais" (with partial context: {{"description": "salary"}})
+        Input: "Received my salary"
+        Output: {{"description": "salary"}}
+
+        Input: "4500 reais"
         Output: {{"amount": 450000}}
-        
-        Input: "I received money yesterday"
-        Output: {{"refusal_reason": "missing_amount"}}
-        
-        OUTPUT ONLY VALID JSON (no markdown, no explanations):"""
+
+        OUTPUT ONLY VALID JSON:"""
 
     def execute(self, params: Dict[str, Any], user_id: int) -> Tuple[str, str]:
         params["transaction_type"] = "income"
@@ -213,10 +187,8 @@ class QueryTool(BaseTool):
         }
 
     def get_extraction_prompt(self, message: str, **kwargs) -> str:
-        """Query tool doesn't need extraction - just passes through the message."""
         return f"""Simple extraction - just return the query as-is.
         USER MESSAGE: "{message}"
-
         OUTPUT: {{"query": "{message}"}}"""
 
     def execute(self, params: Dict[str, Any], user_id: int) -> Tuple[str, str]:
