@@ -47,6 +47,6 @@ def create_transaction(
     db_data["user_id"] = user_id
     db_transaction = models.Transaction(**db_data)
     db.add(db_transaction)
-    db.commit()
+    db.flush()
     db.refresh(db_transaction)
     return db_transaction

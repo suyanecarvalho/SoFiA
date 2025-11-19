@@ -7,7 +7,7 @@ def create_session(
 ) -> models.ChatSession:
     db_session = models.ChatSession(user_id=user_id, title=title)
     db.add(db_session)
-    db.commit()
+    db.flush()
     db.refresh(db_session)
     return db_session
 
@@ -58,7 +58,7 @@ def add_message(
         session_id=session_id, role=role, content=content, meta_data=meta_data
     )
     db.add(db_message)
-    db.commit()
+    db.flush()
     db.refresh(db_message)
     return db_message
 

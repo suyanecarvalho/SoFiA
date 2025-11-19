@@ -181,28 +181,31 @@ class ChatService:
                 )
             except Exception as e:
                 logger.error("Transaction Creation Error", exc_info=True)
-                return f"System: Error creating transaction: {e}", "System Error"
+                raise e
 
         elif intent == UserIntent.QUERY:
             try:
                 logger.info("Querying Transactions", extra={"payload": params})
                 results = self.transaction_service.get_transactions(
-                    filters=params
+                 filters=params
                 )
                 if not results:
                     return "System: No transactions found matching those criteria.", "Query executed (0 results)"
+
                 summary_lines = []
                 for tx in results:
                     date_str = tx.created_at.strftime("%Y-%m-%d")
                     amount = f"R$ {tx.amount / 100:.2f}"
                     t_type = getattr(tx, "transaction_type", "transaction")
                     summary_lines.append(f"- {date_str}: {tx.description} ({amount}) [{t_type}]")
+
                 context = "System: Found the following transactions:\n" + "\n".join(summary_lines)
                 action_desc = f"Retrieved {len(results)} transactions"
                 return context, action_desc
             except Exception as e:
                 logger.error("Query Error", exc_info=True)
-                return f"System: Error running query: {e}", "Query Error"
+                raise e
+
         return None, None
 
     def _generate_title(self, first_message: str) -> str:
@@ -227,15 +230,18 @@ class ChatService:
         crud_chat.add_message(self.db, session_id, ChatRole.USER, message, meta_data=params)
         tool_context, action_desc = self._execute_tool(intent, params)
         history = crud_chat.get_history(self.db, session_id, limit=10)
-        messages = [
-            {
-                "role": "system",
-                "content": "You are SoFiA. Use the System info to answer. If a transaction was created, confirm it. If querying, summarize the results.",
-            }
-        ]
+        messages: list[LLMMessage] = [LLMMessage(
+            role="system",
+            content="You are SoFiA. Use the System info to answer. If a transaction was created, confirm it. If querying, summarize the results."
+        )]
         if tool_context:
-            messages.append({"role": "system", "content": tool_context})
-        messages.extend([{"role": m.role.value, "content": m.content} for m in history])
+            messages.append(
+                LLMMessage(role="system", content=tool_context)
+            )
+        messages.extend([
+            LLMMessage(role=m.role.value, content=m.content)
+            for m in history
+        ])
         response_text = self.llm.get_chat_response(messages)
         crud_chat.add_message(self.db, session_id, ChatRole.ASSISTANT, response_text)
         return response_text, action_desc
@@ -244,23 +250,38 @@ class ChatService:
             self, message: str, model_preference: str, model_name: str
     ) -> ChatResponse:
         self._setup_llm(model_preference, model_name)
-        title = self._generate_title(message)
-        session = crud_chat.create_session(
-            self.db, user_id=APPLICATION_USER_ID, title=title
-        )
-        response_text, action_taken = self._handle_conversation_flow(
-            session.id, message
-        )
-        return ChatResponse(
-            response=response_text,
-            session_id=session.id,
-            session_title=title,
-            action_taken=action_taken,
-        )
+        try:
+            title = self._generate_title(message)
+            session = crud_chat.create_session(
+                self.db, user_id=APPLICATION_USER_ID, title=title
+            )
+            response_text, action_taken = self._handle_conversation_flow(
+                session.id, message
+            )
+            self.db.commit()
+            self.db.refresh(session)
+            return ChatResponse(
+                response=response_text,
+                session_id=session.id,
+                session_title=title,
+                action_taken=action_taken,
+            )
+        except Exception as e:
+            self.db.rollback()
+            logger.error(f"Error in create_session_and_reply: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
 
     def process_user_message(
             self, session_id: int, message: str, model_preference: str, model_name: str
     ) -> str:
         self._setup_llm(model_preference, model_name)
-        response_text, _ = self._handle_conversation_flow(session_id, message)
-        return response_text
+
+        try:
+            response_text, _ = self._handle_conversation_flow(session_id, message)
+            self.db.commit()
+            return response_text
+
+        except Exception as e:
+            self.db.rollback()
+            logger.error(f"Error in process_user_message: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
