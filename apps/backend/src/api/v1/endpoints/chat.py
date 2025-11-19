@@ -98,11 +98,14 @@ def send_message(
     session = crud_chat.get_session(db, session_id=session_id, user_id=USER_ID)
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
-
-    response_text = service.process_user_message(
+    response_text, action_taken = service.process_user_message(
         session_id=session_id,
         message=request.message,
         model_preference=request.model_preference,
         model_name=request.model_name,
     )
-    return ChatResponse(response=response_text, session_id=session_id)
+    return ChatResponse(
+        response=response_text,
+        session_id=session_id,
+        action_taken=action_taken
+    )

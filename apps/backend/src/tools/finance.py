@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 from typing import Dict, Any, Tuple, Optional
 from pydantic import TypeAdapter
 from src.core.logger import logger
@@ -38,7 +39,7 @@ class ExpenseTool(BaseTool):
                     "description": "Is this a want/luxury (true) or a need (false)?"
                 }
             },
-            "required": ["amount", "description", "category_name"]
+            "required": ["amount", "description", "category_name", "is_superfluous"]
         }
 
     def get_extraction_prompt(
@@ -167,6 +168,7 @@ class IncomeTool(BaseTool):
 
 
 class QueryTool(BaseTool):
+    """Smart Query Tool that filters transactions."""
     def __init__(self, service: TransactionService):
         self.service = service
 
@@ -179,31 +181,54 @@ class QueryTool(BaseTool):
         return {
             "type": "object",
             "properties": {
-                "date_from": {"type": "string", "format": "date"},
-                "date_to": {"type": "string", "format": "date"},
+                "start_date": {"type": "string", "format": "date", "description": "YYYY-MM-DD"},
+                "end_date": {"type": "string", "format": "date", "description": "YYYY-MM-DD"},
+                "is_superfluous": {"type": "boolean"},
                 "limit": {"type": "integer"},
+                "transaction_type": {"type": "string", "enum": ["expense", "income"]}
             },
-            "required": ["query"]
+            "required": []
         }
 
-    def get_extraction_prompt(self, message: str, **kwargs) -> str:
-        return f"""Simple extraction - just return the query as-is.
-        USER MESSAGE: "{message}"
-        OUTPUT: {{"query": "{message}"}}"""
+    def get_extraction_prompt(self, message: str, partial: Optional[Dict[str, Any]] = None) -> str:
+        """
+        Instructs LLM to convert natural language time (this month) to Dates.
+        """
+        today = datetime.now().strftime("%Y-%m-%d")
+        partial_str = f"\nPrevious data: {json.dumps(partial)}" if partial else ""
+        return f"""You are a query parser for a finance DB.
+        TODAY IS: {today}
+
+        USER QUERY: "{message}"{partial_str}
+
+        YOUR TASK: Convert natural language requirements into JSON filters.
+
+        FIELDS:
+        - start_date (YYYY-MM-DD): derived from "this month", "last week", "since monday".
+        - end_date (YYYY-MM-DD): derived from "until now", "yesterday".
+        - is_superfluous (boolean): true if user asks for "unnecessary" or "wasted" money.
+        - transaction_type (string): 'expense' or 'income' if specified.
+        - limit (int): if user asks for "last 5", "recent". Default is 10 if unspecified/implied.
+
+        "Show my superfluous expenses" -> {{"is_superfluous": true, "transaction_type": "expense"}}
+        "Last 3 incomes" -> {{"transaction_type": "income", "limit": 3}}
+
+        OUTPUT VALID JSON ONLY. Omit keys if not mentioned.
+        """
 
     def execute(self, params: Dict[str, Any], user_id: int) -> Tuple[str, str]:
         logger.info(f"Tool Executing: Query", extra={"payload": params})
-        results = self.service.get_transactions(filters=params)
-
+        filters = {}
+        if "start_date" in params: filters["date_from"] = params["start_date"]
+        if "end_date" in params: filters["date_to"] = params["end_date"]
+        if "is_superfluous" in params: filters["is_superfluous"] = params["is_superfluous"]
+        if "transaction_type" in params: filters["transaction_type"] = params["transaction_type"]
+        results = self.service.get_transactions(filters=filters)
         if not results:
-            return "System: No transactions found.", "Query executed (0 results)"
-
+            return "No transactions found matching those criteria.", "Query (0 results)"
+        total = sum(t.amount for t in results)
         summary_lines = []
         for tx in results:
-            t_type = getattr(tx, "transaction_type", "transaction")
-            summary_lines.append(f"- {tx.created_at}: {tx.description} (R$ {tx.amount / 100:.2f}) [{t_type}]")
-
-        return (
-            "System: Found the following transactions:\n" + "\n".join(summary_lines),
-            f"Retrieved {len(results)} transactions"
-        )
+            summary_lines.append(f"- {tx.created_at.strftime('%d/%m')}: {tx.description} (R$ {tx.amount / 100:.2f})")
+        full_text = f"Found {len(results)} transactions. Total: R$ {total/100:.2f}.\nDetails:\n" + "\n".join(summary_lines)
+        return full_text, f"Query ({len(results)} results)"
