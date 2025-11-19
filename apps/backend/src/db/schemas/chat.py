@@ -69,6 +69,6 @@ class ChatResponse(BaseModel):
     response: str
     session_id: int
     session_title: Optional[str] = (
-        None  # Added to return the generated title immediately
+        None
     )
     action_taken: Optional[str] = None

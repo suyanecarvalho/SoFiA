@@ -1,6 +1,7 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional  # <-- Add Optional
 from sqlalchemy.orm import Session
-from src.db.crud import crud_transaction
+# Make sure crud_category is imported
+from src.db.crud import crud_transaction, crud_category
 from src.db.schemas import transaction as transaction_schema
 from src.db.models import models
 
@@ -8,6 +9,7 @@ from src.db.models import models
 class TransactionService:
     def __init__(self, db: Session):
         self.db = db
+        self.category_crud = crud_category
 
     def create_transaction(
             self, user_id: int, transaction_data: transaction_schema.TransactionCreate
@@ -32,3 +34,12 @@ class TransactionService:
             is_superfluous=filters.get("is_superfluous"),
             transaction_type=filters.get("transaction_type")
         )
+
+    def get_category_by_name(self, name: str) -> Optional[models.Category]:
+        """Finds a category by its exact name (case-insensitive)."""
+        return self.category_crud.get_category_by_name(self.db, name)
+
+    def get_all_category_names(self) -> List[str]:
+        """Returns a list of all category names."""
+        categories = self.category_crud.get_categories(self.db)
+        return [cat.name for cat in categories]

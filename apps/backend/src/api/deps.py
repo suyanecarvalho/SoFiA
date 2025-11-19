@@ -26,7 +26,7 @@ def get_tools(
     If you add a 'DeleteTool' later, you just add it to this list.
     """
     return [
-        ExpenseTool(db, transaction_service),
+        ExpenseTool(transaction_service),
         IncomeTool(transaction_service),
         QueryTool(transaction_service)
     ]

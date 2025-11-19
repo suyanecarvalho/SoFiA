@@ -9,11 +9,12 @@ from sqlalchemy import (
     Enum as SQLAlchemyEnum,
     CheckConstraint,
     JSON,
+    text,  # ← ADDED THIS IMPORT
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from ..database.base import Base
-from src.utils.enums import ChatRole, TransactionType
+from src.utils.enums import ChatRole, TransactionType, ToolName
 
 
 class User(Base):
@@ -72,6 +73,29 @@ class ChatSession(Base):
     title = Column(String, nullable=True)
     created_at = Column(DateTime, server_default=func.now(), nullable=True)
     updated_at = Column(DateTime, onupdate=func.now(), nullable=True)
+    pending_tool = Column(
+        SQLAlchemyEnum(
+            ToolName,
+            values_callable=lambda obj: [e.value for e in obj]
+        ),
+        nullable=True,
+        default=None,
+        index=True,
+        comment="Current tool waiting for missing parameters (e.g., 'expense', 'income')"
+    )
+    collected_params = Column(
+        JSON,
+        nullable=False,
+        server_default=text("'{}'"),
+        comment="Partially extracted parameters from previous turns"
+    )
+    missing_fields = Column(
+        JSON,
+        nullable=False,
+        server_default=text("'[]'"),
+        comment="List of required fields still missing from user input"
+    )
+
     user = relationship("User", back_populates="chat_sessions")
     messages = relationship(
         "ChatMessage", back_populates="session", cascade="all, delete-orphan"

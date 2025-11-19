@@ -17,3 +17,9 @@ class UserIntent(str, enum.Enum):
     INCOME = "income"
     QUERY = "query"
     CHAT = "chat"
+
+class ToolName(str, enum.Enum):
+    """Tools that support multi-turn parameter collection."""
+    EXPENSE = "expense"
+    INCOME = "income"
+    QUERY = "query"
