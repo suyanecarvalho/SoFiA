@@ -1,6 +1,5 @@
 import datetime
 from typing import Optional
-
 from sqlalchemy.orm import Session
 from ..schemas import transaction as transaction_schema
 from ..models import models
@@ -24,9 +23,6 @@ def get_transactions(
     is_superfluous: Optional[bool] = None,
     transaction_type: Optional[str] = None,
 ):
-    """
-    Retrieve transactions with optional filtering.
-    """
     query = db.query(models.Transaction).order_by(models.Transaction.created_at.desc())
     if date_from:
         query = query.filter(models.Transaction.created_at >= date_from)
@@ -45,9 +41,11 @@ def get_transactions(
 
 
 def create_transaction(
-    db: Session, transaction: transaction_schema.TransactionCreate
+    db: Session, transaction: transaction_schema.TransactionCreate, user_id: int
 ) -> models.Transaction:
-    db_transaction = models.Transaction(**transaction.model_dump())
+    db_data = transaction.model_dump(exclude_unset=True)
+    db_data["user_id"] = user_id
+    db_transaction = models.Transaction(**db_data)
     db.add(db_transaction)
     db.commit()
     db.refresh(db_transaction)

@@ -1,3 +1,7 @@
+docker compose down --volumes --remove-orphans --rmi all
+
+
+
 # SoFiA - Soluções Financeiras
 
 SoFiA é uma plataforma local para gestão financeira pessoal. Permite que usuários rastreiem, categorizem e analisem suas transações financeiras de forma intuitiva e eficiente através de um chat.

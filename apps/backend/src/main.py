@@ -4,12 +4,7 @@ from .api.v1.api import api_router
 
 app = FastAPI(title="SofIA Backend")
 
-origins = [
-    "http://localhost",
-    "http://localhost:5173",
-    "http://localhost:3000",
-    "*"
-]
+origins = ["http://localhost", "http://localhost:5173", "http://localhost:3000", "*"]
 
 app.add_middleware(
     CORSMiddleware,
@@ -18,6 +13,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 @app.get("/api/health")
 def health_check():

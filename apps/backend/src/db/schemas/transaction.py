@@ -1,12 +1,8 @@
+import datetime
+
 from pydantic import BaseModel, Field
 from typing import Optional, Union, Literal, Annotated
-import datetime
-import enum
-
-
-class TransactionType(str, enum.Enum):
-    EXPENSE = "expense"
-    INCOME = "income"
+from src.utils.enums import TransactionType
 
 
 class TransactionCore(BaseModel):
@@ -18,13 +14,15 @@ class TransactionCore(BaseModel):
 
 
 class ExpenseCreate(TransactionCore):
+    transaction_type: Literal[TransactionType.EXPENSE] = TransactionType.EXPENSE
     category_id: int
     is_superfluous: bool = False
-    transaction_type: Literal[TransactionType.EXPENSE] = TransactionType.EXPENSE
 
 
 class IncomeCreate(TransactionCore):
     transaction_type: Literal[TransactionType.INCOME] = TransactionType.INCOME
+    category_id: Literal[None] = None
+    is_superfluous: Literal[None] = None
 
 
 TransactionCreate = Annotated[
