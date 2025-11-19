@@ -2,6 +2,7 @@ import type {
   ChatSession,
   UpdateSessionRequest,
   CreateSessionRequest,
+  CreateSessionResponse,
 } from '../types'
 import apiClient from '@/lib/api/api-client'
 
@@ -13,8 +14,10 @@ export const sessionService = {
     return data
   },
 
-  async createSession(payload: CreateSessionRequest): Promise<ChatSession> {
-    const { data } = await apiClient.post<ChatSession>(
+  async createSession(
+    payload: CreateSessionRequest
+  ): Promise<CreateSessionResponse> {
+    const { data } = await apiClient.post<CreateSessionResponse>(
       '/api/v1/chat/sessions',
       payload
     )

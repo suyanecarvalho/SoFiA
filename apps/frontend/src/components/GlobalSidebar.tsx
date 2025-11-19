@@ -8,9 +8,9 @@ import {
   Check,
   X,
   LayoutDashboard,
-  LogOut,
   User as UserIcon,
   MoreHorizontal,
+  MessageSquare,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -32,16 +32,14 @@ import {
   useUpdateSession,
 } from '@/features/chat/hooks/useSessions'
 import { cn } from '@/lib/utils'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation, useParams } from 'react-router-dom'
 
 export function GlobalSidebar() {
-  const {
-    isSidebarOpen,
-    toggleSidebar,
-    currentSessionId,
-    setCurrentSessionId,
-  } = useUIStore()
+  const { isSidebarOpen, toggleSidebar } = useUIStore()
   const user = useUserStore((state) => state.user)
+
+  // FIX: Get currentSessionId from URL params, not store
+  const { sessionId: currentSessionId } = useParams<{ sessionId: string }>()
 
   const { data: sessions, isLoading } = useSessions()
   const deleteSession = useDeleteSession()
@@ -50,29 +48,32 @@ export function GlobalSidebar() {
   const navigate = useNavigate()
   const location = useLocation()
 
-  const [editingId, setEditingId] = useState<string | null>(null)
+  // State for inline editing
+  const [editingId, setEditingId] = useState<number | null>(null)
   const [editTitle, setEditTitle] = useState('')
 
-  // Navigation Helper
   const handleNavigation = (path: string) => {
     navigate(path)
   }
 
-  // Session Selection
-  const handleSelectSession = (sessionId: string | null) => {
-    setCurrentSessionId(sessionId)
-    navigate('/chat')
+  // FIX: Navigate to specific ID or new chat
+  const handleSelectSession = (sessionId: number | null) => {
+    if (sessionId) {
+      navigate(`/chat/${sessionId}`)
+    } else {
+      navigate('/chat')
+    }
   }
 
-  const handleStartEdit = (sessionId: string, currentTitle: string) => {
+  const handleStartEdit = (sessionId: number, currentTitle: string) => {
     setEditingId(sessionId)
     setEditTitle(currentTitle)
   }
 
-  const handleSaveEdit = async (sessionId: string) => {
+  const handleSaveEdit = async (sessionId: number) => {
     if (editTitle.trim()) {
       await updateSession.mutateAsync({
-        sessionId,
+        sessionId: sessionId.toString(),
         data: { title: editTitle.trim() },
       })
     }
@@ -84,17 +85,16 @@ export function GlobalSidebar() {
     setEditTitle('')
   }
 
-  const handleDelete = async (sessionId: string) => {
-    await deleteSession.mutateAsync(sessionId)
-    if (currentSessionId === sessionId) {
-      setCurrentSessionId(null)
-    }
-  }
+  const handleDelete = async (sessionId: number) => {
+    // Prevent editing if we delete the item being edited
+    if (editingId === sessionId) handleCancelEdit()
 
-  const handleLogout = () => {
-    // Add your logout logic here (clear tokens, zustand store, etc)
-    if (logout) logout()
-    navigate('/login') // or wherever
+    await deleteSession.mutateAsync(sessionId.toString())
+
+    // If we deleted the active chat, go to new chat
+    if (currentSessionId === sessionId.toString()) {
+      navigate('/chat')
+    }
   }
 
   // --- Render Collapsed State ---
@@ -115,6 +115,10 @@ export function GlobalSidebar() {
             variant="ghost"
             size="icon"
             onClick={() => handleNavigation('/dashboard')}
+            className={cn(
+              location.pathname === '/dashboard' &&
+                'bg-accent text-accent-foreground'
+            )}
             title="Dashboard"
           >
             <LayoutDashboard className="h-5 w-5" />
@@ -123,9 +127,13 @@ export function GlobalSidebar() {
             variant="ghost"
             size="icon"
             onClick={() => handleSelectSession(null)}
-            title="New Chat"
+            className={cn(
+              location.pathname.includes('/chat') &&
+                'bg-accent text-accent-foreground'
+            )}
+            title="Chat"
           >
-            <Plus className="h-5 w-5" />
+            <MessageSquare className="h-5 w-5" />
           </Button>
         </div>
 
@@ -143,13 +151,6 @@ export function GlobalSidebar() {
               <DropdownMenuItem onClick={() => navigate('/settings')}>
                 <Settings className="mr-2 h-4 w-4" /> Settings
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={handleLogout}
-                className="text-destructive"
-              >
-                <LogOut className="mr-2 h-4 w-4" /> Log out
-              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -161,7 +162,7 @@ export function GlobalSidebar() {
   return (
     <div className="flex h-full w-64 flex-col border-r bg-muted/30 transition-all duration-300">
       {/* Header - Clickable to Home */}
-      <div className="flex items-center justify-between border-b p-4">
+      <div className="flex items-center justify-between border-b p-4 h-[60px]">
         <h2
           className="text-lg font-semibold tracking-tight cursor-pointer hover:opacity-80 transition-opacity select-none"
           onClick={() => navigate('/')}
@@ -173,8 +174,9 @@ export function GlobalSidebar() {
           size="icon"
           onClick={toggleSidebar}
           title="Close sidebar"
+          className="h-8 w-8"
         >
-          <PanelLeft className="h-5 w-5" />
+          <PanelLeft className="h-4 w-4" />
         </Button>
       </div>
 
@@ -183,7 +185,8 @@ export function GlobalSidebar() {
         <Button
           className={cn(
             'w-full justify-start',
-            location.pathname === '/dashboard' && 'bg-accent'
+            location.pathname === '/dashboard' &&
+              'bg-accent text-accent-foreground'
           )}
           variant="ghost"
           onClick={() => handleNavigation('/dashboard')}
@@ -192,12 +195,13 @@ export function GlobalSidebar() {
           Dashboard
         </Button>
         <Button
-          className="w-full justify-start"
-          variant={
-            location.pathname === '/chat' && !currentSessionId
-              ? 'secondary'
-              : 'outline'
-          }
+          className={cn(
+            'w-full justify-start',
+            location.pathname === '/chat' &&
+              !currentSessionId &&
+              'bg-accent text-accent-foreground'
+          )}
+          variant="ghost"
           onClick={() => handleSelectSession(null)}
         >
           <Plus className="mr-2 h-4 w-4" />
@@ -219,83 +223,89 @@ export function GlobalSidebar() {
           </div>
         ) : sessions && sessions.length > 0 ? (
           <div className="space-y-1 py-1">
-            {sessions.map((session) => (
-              <div
-                key={session.id}
-                className={cn(
-                  'group relative rounded-md transition-colors',
-                  currentSessionId === session.id &&
-                    location.pathname === '/chat'
-                    ? 'bg-accent text-accent-foreground'
-                    : 'hover:bg-accent/50 text-muted-foreground hover:text-foreground'
-                )}
-              >
-                {editingId === session.id ? (
-                  <div className="flex items-center gap-1 p-1">
-                    <Input
-                      value={editTitle}
-                      onChange={(e) => setEditTitle(e.target.value)}
-                      className="h-7 text-xs px-2"
-                      autoFocus
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') handleSaveEdit(session.id)
-                        if (e.key === 'Escape') handleCancelEdit()
-                      }}
-                    />
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-7 w-7 shrink-0"
-                      onClick={() => handleSaveEdit(session.id)}
-                    >
-                      <Check className="h-3 w-3" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-7 w-7 shrink-0"
-                      onClick={handleCancelEdit}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </div>
-                ) : (
-                  <>
-                    <button
-                      onClick={() => handleSelectSession(session.id)}
-                      className="w-full truncate p-2 text-left text-sm"
-                    >
-                      <span className="truncate block">{session.title}</span>
-                    </button>
+            {sessions.map((session) => {
+              // Determine if this session is active based on URL
+              const isActive = currentSessionId === session.id.toString()
 
-                    <div className="absolute right-1 top-1 hidden gap-0.5 group-hover:flex bg-muted/80 rounded-sm backdrop-blur-sm">
+              return (
+                <div
+                  key={session.id}
+                  className={cn(
+                    'group relative rounded-md transition-colors',
+                    isActive
+                      ? 'bg-accent text-accent-foreground'
+                      : 'hover:bg-accent/50 text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  {editingId === session.id ? (
+                    <div className="flex items-center gap-1 p-1">
+                      <Input
+                        value={editTitle}
+                        onChange={(e) => setEditTitle(e.target.value)}
+                        className="h-7 text-xs px-2"
+                        autoFocus
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleSaveEdit(session.id)
+                          if (e.key === 'Escape') handleCancelEdit()
+                        }}
+                      />
                       <Button
                         size="icon"
                         variant="ghost"
-                        className="h-7 w-7"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleStartEdit(session.id, session.title)
-                        }}
+                        className="h-7 w-7 shrink-0"
+                        onClick={() => handleSaveEdit(session.id)}
                       >
-                        <Edit2 className="h-3 w-3" />
+                        <Check className="h-3 w-3" />
                       </Button>
                       <Button
                         size="icon"
                         variant="ghost"
-                        className="h-7 w-7 text-destructive hover:text-destructive"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleDelete(session.id)
-                        }}
+                        className="h-7 w-7 shrink-0"
+                        onClick={handleCancelEdit}
                       >
-                        <Trash2 className="h-3 w-3" />
+                        <X className="h-3 w-3" />
                       </Button>
                     </div>
-                  </>
-                )}
-              </div>
-            ))}
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => handleSelectSession(session.id)}
+                        className="w-full truncate p-2 text-left text-sm pr-8"
+                      >
+                        <span className="truncate block">
+                          {session.title || 'Untitled Chat'}
+                        </span>
+                      </button>
+
+                      <div className="absolute right-1 top-1 hidden gap-0.5 group-hover:flex bg-muted/80 rounded-sm backdrop-blur-sm shadow-sm">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7 hover:bg-background"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleStartEdit(session.id, session.title || '')
+                          }}
+                        >
+                          <Edit2 className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7 text-destructive hover:text-destructive hover:bg-background"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleDelete(session.id)
+                          }}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )
+            })}
           </div>
         ) : (
           <div className="py-8 text-center text-xs text-muted-foreground">
@@ -305,15 +315,30 @@ export function GlobalSidebar() {
       </ScrollArea>
 
       {/* Footer - User Dropdown */}
-      <div className="border-t p-2">
+      <div className="border-t p-2 bg-background">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="w-full justify-start px-2">
-              <div className="flex items-center gap-2 truncate">
-                <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                  <UserIcon className="h-4 w-4 text-primary" />
+            <Button variant="ghost" className="w-full justify-start px-2 h-12">
+              <div className="flex items-center gap-2 w-full">
+                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 border">
+                  {user?.profile_pic ? (
+                    <img
+                      src={user.profile_pic}
+                      alt="User"
+                      className="h-full w-full rounded-full object-cover"
+                    />
+                  ) : (
+                    <UserIcon className="h-4 w-4 text-primary" />
+                  )}
                 </div>
-                <span className="truncate">{user?.name || 'User'}</span>
+                <div className="flex flex-col items-start overflow-hidden">
+                  <span className="truncate text-sm font-medium w-full text-left">
+                    {user?.name || 'User'}
+                  </span>
+                  <span className="truncate text-xs text-muted-foreground w-full text-left">
+                    Free Plan
+                  </span>
+                </div>
                 <MoreHorizontal className="ml-auto h-4 w-4 text-muted-foreground" />
               </div>
             </Button>

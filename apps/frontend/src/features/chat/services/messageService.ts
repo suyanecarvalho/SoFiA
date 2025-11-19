@@ -11,7 +11,7 @@ export const messageService = {
     const { data } = await apiClient.get<PaginatedResponse<Message>>(
       `/api/v1/chat/sessions/${sessionId}/messages`
     )
-    return data.items ? data.items.reverse() : []
+    return data.items || []
   },
 
   async sendMessage(

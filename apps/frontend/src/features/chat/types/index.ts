@@ -108,6 +108,13 @@ export interface CreateSessionRequest {
   model_name?: string
 }
 
+export interface CreateSessionResponse {
+  response: string
+  session_id: number
+  session_title: string
+  action_taken: string
+}
+
 export interface UpdateSessionRequest {
   title: string
 }

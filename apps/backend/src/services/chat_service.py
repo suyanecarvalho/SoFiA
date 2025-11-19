@@ -37,6 +37,19 @@ class ChatService:
             case _:
                 self.llm = get_llm_instance("dummy")
 
+    def _ensure_dict(self, data: Any) -> dict:
+        """
+        Sanitizes LLM output. If the LLM returns a list (e.g. [result]),
+        it extracts the first item. Returns an empty dict if invalid.
+        """
+        if isinstance(data, list):
+            if len(data) > 0 and isinstance(data[0], dict):
+                return data[0]
+            return {}
+        if isinstance(data, dict):
+            return data
+        return {}
+
     def _detect_intent(self, message: str) -> UserIntent:
         """Detects user intent using classification."""
         logger.debug(f"Detecting intent for: '{message}'")
@@ -45,14 +58,14 @@ class ChatService:
         prompt = f"""You are an intent classifier for SoFiA, a personal finance assistant.
 
         USER MESSAGE: "{message}"
-        
+
         YOUR JOB:
         Classify the user's intent into ONE category:
         - "expense": User wants to REGISTER a new spending transaction (bought, paid, spent).
         - "income": User wants to REGISTER money received (salary, gift).
         - "query": User wants to KNOW about past data (how much spent, list transactions, balance).
         - "chat": General conversation, greetings, or unclear intent.
-        
+
         EXAMPLES:
         "Comprei um vestido" → {{"intent": "expense"}}
         "Gastei 50 reais no almoço" → {{"intent": "expense"}}
@@ -61,12 +74,11 @@ class ChatService:
         "Quanto gastei com Uber?" → {{"intent": "query"}}
         "Recebi meu pagamento" → {{"intent": "income"}}
         "Oi, tudo bem?" → {{"intent": "chat"}}
-        
+
         OUTPUT ONLY VALID JSON: {{"intent": "expense"}}"""
-
-        result = self.llm.extract_structured_data(prompt, schema)
+        raw_result = self.llm.extract_structured_data(prompt, schema)
+        result = self._ensure_dict(raw_result)
         intent_str = result.get("intent", UserIntent.CHAT.value)
-
         try:
             return UserIntent(intent_str.lower())
         except ValueError:
@@ -75,29 +87,29 @@ class ChatService:
     def _detect_cancellation(self, message: str) -> bool:
         schema = {"type": "object", "properties": {"wants_to_cancel": {"type": "boolean"}}, "required": ["wants_to_cancel"]}
         prompt = f"""Analyze: "{message}". Does user want to CANCEL/STOP? Output JSON."""
-        result = self.llm.extract_structured_data(prompt, schema)
+        raw_result = self.llm.extract_structured_data(prompt, schema)
+        result = self._ensure_dict(raw_result)
         return result.get("wants_to_cancel", False)
 
     def _validate_and_clean_params(self, intent: UserIntent, params: dict[str, Any]) -> dict[str, Any]:
-        """Validates extracted parameters, specifically Category names."""
         cleaned = params.copy()
         if "category_name" in cleaned and intent in [UserIntent.EXPENSE, UserIntent.QUERY]:
             extracted_cat = cleaned["category_name"]
-
-            tool = self.tools[intent.value]
-            valid_categories = tool.schema["properties"]["category_name"]["enum"]
-
-            if extracted_cat in valid_categories:
-                return cleaned
-
-            matches = difflib.get_close_matches(extracted_cat, valid_categories, n=1, cutoff=0.6)
-            if matches:
-                logger.info(f"✨ Auto-corrected category '{extracted_cat}' to '{matches[0]}'")
-                cleaned["category_name"] = matches[0]
-            else:
-                logger.warning(f"❌ Validation Failed: '{extracted_cat}' is not a valid category. Removing it.")
+            if extracted_cat is None or not isinstance(extracted_cat, str):
                 del cleaned["category_name"]
-
+            else:
+                tool = self.tools[intent.value]
+                valid_categories = tool.schema["properties"]["category_name"]["enum"]
+                if extracted_cat in valid_categories:
+                    pass
+                else:
+                    matches = difflib.get_close_matches(extracted_cat, valid_categories, n=1, cutoff=0.6)
+                    if matches:
+                        logger.info(f"✨ Auto-corrected category '{extracted_cat}' to '{matches[0]}'")
+                        cleaned["category_name"] = matches[0]
+                    else:
+                        logger.warning(f"❌ Validation Failed: '{extracted_cat}' is not a valid category. Removing it.")
+                        del cleaned["category_name"]
         return cleaned
 
     def _check_missing_fields(self, params: dict[str, object], schema: dict) -> list[str]:
@@ -153,17 +165,14 @@ class ChatService:
             tool = self.tools[intent.value]
 
             extraction_prompt = tool.get_extraction_prompt(message, partial=collected_params)
-            new_params = self.llm.extract_structured_data(extraction_prompt, tool.schema)
+            raw_new_params = self.llm.extract_structured_data(extraction_prompt, tool.schema)
+            new_params = self._ensure_dict(raw_new_params)
             logger.info(f"📥 Raw LLM Extraction (Flow): {json.dumps(new_params, ensure_ascii=False)}")
-
             merged_params = {**collected_params, **new_params}
-
             final_params = self._validate_and_clean_params(intent, merged_params)
             logger.info(f"🧹 Params after Validation: {json.dumps(final_params, ensure_ascii=False)}")
-
             was_category_rejected = "category_name" in merged_params and "category_name" not in final_params
             missing_fields = self._check_missing_fields(final_params, tool.schema)
-
             if was_category_rejected:
                 logger.warning("⚠️ Category was rejected during validation. Forcing user to re-select.")
                 missing_fields.append("category_name")
@@ -193,7 +202,10 @@ class ChatService:
             logger.info(f"🔍 Extracting data for tool: {tool.name}")
             extraction_prompt = tool.get_extraction_prompt(message)
 
-            raw_params = self.llm.extract_structured_data(extraction_prompt, tool.schema)
+            # Fix: Handle list response from LLM
+            raw_params_from_llm = self.llm.extract_structured_data(extraction_prompt, tool.schema)
+            raw_params = self._ensure_dict(raw_params_from_llm)
+
             logger.info(f"📥 Raw LLM Extraction (New): {json.dumps(raw_params, ensure_ascii=False)}")
 
             final_params = self._validate_and_clean_params(intent, raw_params)
