@@ -2,7 +2,7 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from pydantic import TypeAdapter, ValidationError
 from src.llm.factory import get_llm_instance
-from src.llm.interface import LLMInterface
+from src.llm.interface import LLMInterface, LLMMessage
 from src.db.crud import crud_chat, crud_user, crud_category
 from src.services.transaction_service import TransactionService
 from src.db.models.models import ChatRole
@@ -209,13 +209,11 @@ class ChatService:
         if not self.llm:
             return "New Chat"
         try:
-            prompt = [
-                {
-                    "role": "user",
-                    "content": f"Summarize this in 3-5 words for a title (no quotes): '{first_message}'",
-                }
-            ]
-            return self.llm.get_chat_response(prompt).strip().strip('"')
+            prompt = LLMMessage(
+                role="user",
+                content=f"Summarize this in 3-5 words for a title (no quotes): '{first_message}'"
+            )
+            return self.llm.get_chat_response([prompt]).strip().strip('"')
         except:
             return "New Chat"
 
