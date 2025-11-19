@@ -198,16 +198,11 @@ class ChatService:
 
         if intent in [UserIntent.EXPENSE, UserIntent.INCOME, UserIntent.QUERY]:
             tool = self.tools[intent.value]
-
             logger.info(f"🔍 Extracting data for tool: {tool.name}")
             extraction_prompt = tool.get_extraction_prompt(message)
-
-            # Fix: Handle list response from LLM
             raw_params_from_llm = self.llm.extract_structured_data(extraction_prompt, tool.schema)
             raw_params = self._ensure_dict(raw_params_from_llm)
-
             logger.info(f"📥 Raw LLM Extraction (New): {json.dumps(raw_params, ensure_ascii=False)}")
-
             final_params = self._validate_and_clean_params(intent, raw_params)
             logger.info(f"🧹 Params after Validation: {json.dumps(final_params, ensure_ascii=False)}")
 

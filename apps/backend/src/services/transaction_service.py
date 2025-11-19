@@ -1,6 +1,5 @@
-from typing import List, Dict, Any, Optional  # <-- Add Optional
+from typing import List, Dict, Any, Optional
 from sqlalchemy.orm import Session
-# Make sure crud_category is imported
 from src.db.crud import crud_transaction, crud_category
 from src.db.schemas import transaction as transaction_schema
 from src.db.models import models

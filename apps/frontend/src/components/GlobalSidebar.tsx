@@ -182,18 +182,18 @@ export function GlobalSidebar() {
 
       {/* Primary Actions */}
       <div className="p-2 space-y-1">
-        <Button
-          className={cn(
-            'w-full justify-start',
-            location.pathname === '/dashboard' &&
-              'bg-accent text-accent-foreground'
-          )}
-          variant="ghost"
-          onClick={() => handleNavigation('/dashboard')}
-        >
-          <LayoutDashboard className="mr-2 h-4 w-4" />
-          Dashboard
-        </Button>
+        {/*<Button*/}
+        {/*  className={cn(*/}
+        {/*    'w-full justify-start',*/}
+        {/*    location.pathname === '/dashboard' &&*/}
+        {/*      'bg-accent text-accent-foreground'*/}
+        {/*  )}*/}
+        {/*  variant="ghost"*/}
+        {/*  onClick={() => handleNavigation('/dashboard')}*/}
+        {/*>*/}
+        {/*  <LayoutDashboard className="mr-2 h-4 w-4" />*/}
+        {/*  Dashboard*/}
+        {/*</Button>*/}
         <Button
           className={cn(
             'w-full justify-start',

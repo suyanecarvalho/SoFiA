@@ -42,8 +42,7 @@ class ExpenseTool(BaseTool):
         - amount (int cents)
         - description (string)
         - category_name (exact match)
-        - is_superfluous (bool)
-
+        
         Extract known fields. Omit unknown. No JSON markdown.
         """
 
@@ -152,7 +151,6 @@ class QueryTool(BaseTool):
         - category_name (string): MUST be one of the available categories.
         - is_superfluous (boolean): true if user asks for "unnecessary" money.
         - transaction_type (string): 'expense' or 'income' if specified.
-        - limit (int): default 5 if unspecified.
 
         EXAMPLES:
         "How much spent on Food this month?" -> {{"start_date": "2024-05-01", "end_date": "2024-05-15", "category_name": "Alimentação", "transaction_type": "expense"}}
