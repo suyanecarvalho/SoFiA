@@ -1,3 +1,4 @@
+import json
 import difflib
 from datetime import datetime
 
@@ -80,12 +81,9 @@ class ChatService:
     def _validate_and_clean_params(self, intent: UserIntent, params: dict[str, Any]) -> dict[str, Any]:
         """Validates extracted parameters, specifically Category names."""
         cleaned = params.copy()
-
-        # Validate Category for both EXPENSE and QUERY
         if "category_name" in cleaned and intent in [UserIntent.EXPENSE, UserIntent.QUERY]:
             extracted_cat = cleaned["category_name"]
 
-            # Use the schema from the specific tool (ExpenseTool or QueryTool)
             tool = self.tools[intent.value]
             valid_categories = tool.schema["properties"]["category_name"]["enum"]
 
@@ -94,10 +92,10 @@ class ChatService:
 
             matches = difflib.get_close_matches(extracted_cat, valid_categories, n=1, cutoff=0.6)
             if matches:
-                logger.info(f"Auto-corrected category '{extracted_cat}' to '{matches[0]}'")
+                logger.info(f"✨ Auto-corrected category '{extracted_cat}' to '{matches[0]}'")
                 cleaned["category_name"] = matches[0]
             else:
-                logger.warning(f"LLM hallucinated category '{extracted_cat}'. Removing it.")
+                logger.warning(f"❌ Validation Failed: '{extracted_cat}' is not a valid category. Removing it.")
                 del cleaned["category_name"]
 
         return cleaned
@@ -145,7 +143,6 @@ class ChatService:
         logger.info(f"Session {session_id} state: pending_tool={pending_tool}")
         crud_chat.add_message(self.db, session_id, ChatRole.USER, message, meta_data=collected_params)
 
-        # --- EXISTING FLOW ---
         if pending_tool:
             if self._detect_cancellation(message):
                 crud_chat.clear_session_state(self.db, session_id)
@@ -157,17 +154,18 @@ class ChatService:
 
             extraction_prompt = tool.get_extraction_prompt(message, partial=collected_params)
             new_params = self.llm.extract_structured_data(extraction_prompt, tool.schema)
+            logger.info(f"📥 Raw LLM Extraction (Flow): {json.dumps(new_params, ensure_ascii=False)}")
+
             merged_params = {**collected_params, **new_params}
 
             final_params = self._validate_and_clean_params(intent, merged_params)
+            logger.info(f"🧹 Params after Validation: {json.dumps(final_params, ensure_ascii=False)}")
 
-            # Check if category was rejected (present in raw/merged but removed in final)
             was_category_rejected = "category_name" in merged_params and "category_name" not in final_params
-
             missing_fields = self._check_missing_fields(final_params, tool.schema)
 
-            # Force "category_name" to be missing if it was invalid, even for Query
             if was_category_rejected:
+                logger.warning("⚠️ Category was rejected during validation. Forcing user to re-select.")
                 missing_fields.append("category_name")
 
             if not missing_fields:
@@ -183,21 +181,31 @@ class ChatService:
                     self.db, session_id=session_id, pending_tool=pending_tool, collected_params=final_params, missing_fields=missing_fields
                 )
                 self.db.flush()
-                return self._generate_follow_up_question(session_id, intent, missing_fields), None
+                return self._generate_follow_up_question(session_id, intent, final_params, missing_fields), None
 
-        # --- NEW INTENT ---
         logger.info("🆕 NO FLOW - detecting new intent")
         intent = self._detect_intent(message)
+        logger.info(f"🧠 Detected Intent: {intent.value}")
 
         if intent in [UserIntent.EXPENSE, UserIntent.INCOME, UserIntent.QUERY]:
             tool = self.tools[intent.value]
+
+            logger.info(f"🔍 Extracting data for tool: {tool.name}")
             extraction_prompt = tool.get_extraction_prompt(message)
+
             raw_params = self.llm.extract_structured_data(extraction_prompt, tool.schema)
+            logger.info(f"📥 Raw LLM Extraction (New): {json.dumps(raw_params, ensure_ascii=False)}")
+
             final_params = self._validate_and_clean_params(intent, raw_params)
+            logger.info(f"🧹 Params after Validation: {json.dumps(final_params, ensure_ascii=False)}")
+
             was_category_rejected = "category_name" in raw_params and "category_name" not in final_params
             missing_fields = self._check_missing_fields(final_params, tool.schema)
+
             if was_category_rejected:
+                logger.warning("⚠️ Category was rejected during validation. Forcing user to re-select.")
                 missing_fields.append("category_name")
+
             if not missing_fields:
                 logger.info(f"✅ Complete! Executing {intent.value}")
                 description, action_type = self._execute_tool(intent, final_params)
@@ -209,17 +217,20 @@ class ChatService:
                     self.db, session_id=session_id, pending_tool=intent.value, collected_params=final_params, missing_fields=missing_fields
                 )
                 self.db.flush()
-                return self._generate_follow_up_question(session_id, intent, missing_fields), None
+                return self._generate_follow_up_question(session_id, intent, final_params, missing_fields), None
 
         else:
+            logger.info("💬 General chat")
             return self._generate_response_with_context(session_id, "System: General conversation."), None
 
-    def _generate_follow_up_question(self, session_id: int, intent: UserIntent, missing: list[str]) -> str:
+    def _generate_follow_up_question(self, session_id: int, intent: UserIntent, current_params: dict, missing: list[str]) -> str:
         first_missing = missing[0]
+
         if first_missing == 'category_name' and intent in [UserIntent.EXPENSE, UserIntent.QUERY]:
             tool = self.tools[intent.value]
             all_categories = tool.schema["properties"]["category_name"]["enum"]
             category_list_str = "\n".join(f"- {cat}" for cat in all_categories)
+
             system_context = f"""System: The user tried to specify a category that doesn't exist.
             Ask them to pick from this EXACT list:
             {category_list_str}

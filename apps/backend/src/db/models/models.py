@@ -9,7 +9,7 @@ from sqlalchemy import (
     Enum as SQLAlchemyEnum,
     CheckConstraint,
     JSON,
-    text,  # ← ADDED THIS IMPORT
+    text,
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func

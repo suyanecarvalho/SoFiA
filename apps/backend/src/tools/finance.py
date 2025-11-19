@@ -10,7 +10,6 @@ from src.db.schemas import transaction as transaction_schema
 
 
 class ExpenseTool(BaseTool):
-    """Tool for creating expense transactions."""
     name = "expense"
     def __init__(self, service: TransactionService):
         self.service = service
@@ -21,137 +20,73 @@ class ExpenseTool(BaseTool):
         return {
             "type": "object",
             "properties": {
-                "amount": {
-                    "type": "integer",
-                    "description": "The expense amount in CENTS. E.g., R$119.99 → 11999"
-                },
-                "description": {
-                    "type": "string",
-                    "description": "What was bought or paid for"
-                },
-                "category_name": {
-                    "type": "string",
-                    "enum": categories,
-                    "description": "The expense category - must match one from the enum list"
-                },
-                "is_superfluous": {
-                    "type": "boolean",
-                    "description": "Is this a want/luxury (true) or a need (false)?"
-                }
+                "amount": {"type": "integer", "description": "Amount in CENTS"},
+                "description": {"type": "string"},
+                "category_name": {"type": "string", "enum": categories},
+                "is_superfluous": {"type": "boolean"}
             },
-            "required": ["amount", "description", "category_name", "is_superfluous"]
+            "required": ["amount", "description", "category_name"]
         }
 
-    def get_extraction_prompt(
-            self,
-            message: str,
-            partial: Optional[Dict[str, Any]] = None
-    ) -> str:
-        """
-        Generate extraction prompt for expense data.
-        Allows partial extraction without refusal logic.
-        """
+    def get_extraction_prompt(self, message: str, partial: Optional[Dict[str, Any]] = None) -> str:
         categories = self.service.get_all_category_names()
         cat_list = "\n".join(f"  - {cat}" for cat in categories)
-        partial_section = ""
-        if partial:
-            partial_section = f"\n\nALREADY COLLECTED DATA (Do not change these unless the user explicitly corrects them):\n{json.dumps(partial, indent=2, ensure_ascii=False)}\n"
+        partial_str = f"\nPrevious data: {json.dumps(partial)}" if partial else ""
 
-        return f"""You are extracting structured data for an EXPENSE transaction.
-            USER MESSAGE: "{message}"{partial_section}
+        return f"""Extract EXPENSE data. User: "{message}"{partial_str}
 
-            AVAILABLE CATEGORIES (Try to map to one of these, otherwise omit category):
-            {cat_list}
+        AVAILABLE CATEGORIES:
+        {cat_list}
 
-            FIELDS TO EXTRACT:
-            - amount (integer, in cents): E.g., R$119.99 → 11999.
-            - description (string): What was bought.
-            - category_name (string): Must match the list above exactly.
-            - is_superfluous (boolean): True if the user implies it was unnecessary/impulsive ("didn't need it", "guilty", "expensive").
+        Schema:
+        - amount (int cents)
+        - description (string)
+        - category_name (exact match)
+        - is_superfluous (bool)
 
-            INSTRUCTIONS:
-            1. Extract ANY fields explicitly stated in the message.
-            2. If a field is missing or unclear, OMIT it from the JSON.
-            3. DO NOT return an error or refusal. Return partial JSON if necessary.
-            4. If data was already collected, merge it with new info (new info takes precedence).
-
-            EXAMPLES:
-
-            Input: "Bought a dress for R$120 at Shein"
-            Output: {{"amount": 12000, "description": "dress", "category_name": "Lazer & Entretenimento", "is_superfluous": false}}
-
-            Input: "120 reais" (Context: description=makeup was already known)
-            Output: {{"amount": 12000}}
-
-            OUTPUT ONLY VALID JSON:"""
+        Extract known fields. Omit unknown. No JSON markdown.
+        """
 
     def execute(self, params: Dict[str, Any], user_id: int) -> Tuple[str, str]:
         params["transaction_type"] = "expense"
         logger.info(f"Tool Executing: Expense", extra={"payload": params})
+
         cat_name = params.pop("category_name", None)
         if cat_name:
             category = self.service.get_category_by_name(cat_name)
             if category:
                 params["category_id"] = category.id
-            else:
-                raise ValueError(f"Category '{cat_name}' not found in database.")
+
         adapter = TypeAdapter(transaction_schema.TransactionCreate)
         validated_data = adapter.validate_python(params)
         tx = self.service.create_transaction(user_id=user_id, transaction_data=validated_data)
         return (
-            f"System: Successfully created expense ID {tx.id}.",
-            f"Created Expense: {tx.description} (R$ {tx.amount / 100:.2f})"
+            f"Expense created: {tx.description} (R$ {tx.amount / 100:.2f})",
+            f"Created Expense: {tx.description}"
         )
 
 
 class IncomeTool(BaseTool):
+    name = "income"
     def __init__(self, service: TransactionService):
         self.service = service
-
-    @property
-    def name(self) -> str:
-        return UserIntent.INCOME.value
 
     @property
     def schema(self) -> Dict[str, Any]:
         return {
             "type": "object",
             "properties": {
-                "amount": {"type": "integer", "description": "Income amount in CENTS."},
-                "description": {"type": "string", "description": "Source of income."},
+                "amount": {"type": "integer"},
+                "description": {"type": "string"},
             },
             "required": ["amount", "description"]
         }
 
-    def get_extraction_prompt(
-            self,
-            message: str,
-            partial: Optional[Dict[str, Any]] = None
-    ) -> str:
-        partial_section = ""
-        if partial:
-            partial_section = f"\n\nALREADY COLLECTED DATA:\n{json.dumps(partial, indent=2, ensure_ascii=False)}\n"
-
-        return f"""You are extracting structured data for an INCOME transaction.
-        USER MESSAGE: "{message}"{partial_section}
-
-        FIELDS TO EXTRACT:
-        - amount (integer, in cents): E.g., R$100.00 → 10000
-        - description (string): Source (salary, gift, etc)
-
-        INSTRUCTIONS:
-        1. Extract ANY fields explicitly stated.
-        2. If a field is missing, OMIT it from the JSON.
-        3. DO NOT return an error or refusal. Return partial JSON.
-
-        EXAMPLES:
-        Input: "Received my salary"
-        Output: {{"description": "salary"}}
-
-        Input: "4500 reais"
-        Output: {{"amount": 450000}}
-
-        OUTPUT ONLY VALID JSON:"""
+    def get_extraction_prompt(self, message: str, partial: Optional[Dict[str, Any]] = None) -> str:
+        partial_str = f"\nPrevious data: {json.dumps(partial)}" if partial else ""
+        return f"""Extract INCOME data. User: "{message}"{partial_str}
+        Schema: amount (int cents), description (string).
+        Extract known fields. Omit unknown. No JSON markdown."""
 
     def execute(self, params: Dict[str, Any], user_id: int) -> Tuple[str, str]:
         params["transaction_type"] = "income"
@@ -162,8 +97,8 @@ class IncomeTool(BaseTool):
         validated_data = adapter.validate_python(params)
         tx = self.service.create_transaction(user_id=user_id, transaction_data=validated_data)
         return (
-            f"System: Successfully created income ID {tx.id}.",
-            f"Created Income: {tx.description} (R$ {tx.amount / 100:.2f})"
+            f"Income created: {tx.description} (R$ {tx.amount / 100:.2f})",
+            f"Created Income: {tx.description}"
         )
 
 
@@ -178,12 +113,14 @@ class QueryTool(BaseTool):
 
     @property
     def schema(self) -> Dict[str, Any]:
+        categories = self.service.get_all_category_names()
         return {
             "type": "object",
             "properties": {
                 "start_date": {"type": "string", "format": "date", "description": "YYYY-MM-DD"},
                 "end_date": {"type": "string", "format": "date", "description": "YYYY-MM-DD"},
                 "is_superfluous": {"type": "boolean"},
+                "category_name": {"type": "string", "enum": categories},
                 "limit": {"type": "integer"},
                 "transaction_type": {"type": "string", "enum": ["expense", "income"]}
             },
@@ -192,37 +129,61 @@ class QueryTool(BaseTool):
 
     def get_extraction_prompt(self, message: str, partial: Optional[Dict[str, Any]] = None) -> str:
         """
-        Instructs LLM to convert natural language time (this month) to Dates.
+        Instructs LLM to convert natural language time and categories into filters.
         """
         today = datetime.now().strftime("%Y-%m-%d")
+        categories = self.service.get_all_category_names()
+        cat_list = "\n".join(f"  - {cat}" for cat in categories)
         partial_str = f"\nPrevious data: {json.dumps(partial)}" if partial else ""
+
         return f"""You are a query parser for a finance DB.
         TODAY IS: {today}
 
         USER QUERY: "{message}"{partial_str}
 
+        AVAILABLE CATEGORIES (Exact match required):
+        {cat_list}
+
         YOUR TASK: Convert natural language requirements into JSON filters.
 
         FIELDS:
-        - start_date (YYYY-MM-DD): derived from "this month", "last week", "since monday".
+        - start_date (YYYY-MM-DD): derived from "this month", "last week".
         - end_date (YYYY-MM-DD): derived from "until now", "yesterday".
-        - is_superfluous (boolean): true if user asks for "unnecessary" or "wasted" money.
+        - category_name (string): MUST be one of the available categories.
+        - is_superfluous (boolean): true if user asks for "unnecessary" money.
         - transaction_type (string): 'expense' or 'income' if specified.
-        - limit (int): if user asks for "last 5", "recent". Default is 10 if unspecified/implied.
+        - limit (int): default 5 if unspecified.
 
-        "Show my superfluous expenses" -> {{"is_superfluous": true, "transaction_type": "expense"}}
-        "Last 3 incomes" -> {{"transaction_type": "income", "limit": 3}}
+        EXAMPLES:
+        "How much spent on Food this month?" -> {{"start_date": "2024-05-01", "end_date": "2024-05-15", "category_name": "Alimentação", "transaction_type": "expense"}}
+        "Show superfluous expenses" -> {{"is_superfluous": true, "transaction_type": "expense"}}
 
         OUTPUT VALID JSON ONLY. Omit keys if not mentioned.
         """
 
     def execute(self, params: Dict[str, Any], user_id: int) -> Tuple[str, str]:
-        logger.info(f"Tool Executing: Query", extra={"payload": params})
+        logger.info(f"QueryTool executing with params: {json.dumps(params, ensure_ascii=False)}")
         filters = {}
-        if "start_date" in params: filters["date_from"] = params["start_date"]
-        if "end_date" in params: filters["date_to"] = params["end_date"]
+        if "start_date" in params:
+            try:
+                filters["date_from"] = datetime.strptime(params["start_date"], "%Y-%m-%d").date()
+            except ValueError:
+                logger.warning(f"Invalid start_date format: {params['start_date']}")
+
+        if "end_date" in params:
+            try:
+                filters["date_to"] = datetime.strptime(params["end_date"], "%Y-%m-%d").date()
+            except ValueError:
+                logger.warning(f"Invalid end_date format: {params['end_date']}")
         if "is_superfluous" in params: filters["is_superfluous"] = params["is_superfluous"]
         if "transaction_type" in params: filters["transaction_type"] = params["transaction_type"]
+        cat_name = params.get("category_name")
+        if cat_name:
+            category = self.service.get_category_by_name(cat_name)
+            if category:
+                filters["category_id"] = category.id
+                logger.info(f"Mapped category '{cat_name}' to ID {category.id}")
+        logger.info(f"🔎 DB Filters: {filters}")
         results = self.service.get_transactions(filters=filters)
         if not results:
             return "No transactions found matching those criteria.", "Query (0 results)"

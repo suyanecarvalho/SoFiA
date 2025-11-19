@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi_pagination import add_pagination
+
 from .api.v1.api import api_router
 
 app = FastAPI(title="SofIA Backend")
@@ -19,5 +21,5 @@ app.add_middleware(
 def health_check():
     return {"status": "ok"}
 
-
 app.include_router(api_router, prefix="/api/v1")
+add_pagination(app)

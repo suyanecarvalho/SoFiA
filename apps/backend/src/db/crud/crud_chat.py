@@ -2,6 +2,8 @@ from sqlalchemy.orm import Session
 from src.db.models import models
 from typing import Optional, Dict, Any, List
 
+from src.db.models.models import ChatSession, ChatMessage
+
 
 def create_session(
         db: Session, user_id: int, title: str = "New Chat"
@@ -166,3 +168,29 @@ def clear_session_state(db: Session, session_id: int) -> models.ChatSession:
     db.flush()
     db.refresh(session)
     return session
+
+def get_user_sessions(
+    db: Session, user_id: int, skip: int = 0, limit: int = 10
+) -> list[type[ChatSession]]:
+    """
+    Retrieves a paginated list of chat sessions for a user.
+    Ordered by most recent first.
+    """
+    return (
+        db.query(models.ChatSession)
+        .filter(models.ChatSession.user_id == user_id)
+        .order_by(models.ChatSession.created_at.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+
+def get_session_messages(db: Session, session_id: int):
+    """
+    Returns the Query object.
+    """
+    return (
+        db.query(models.ChatMessage)
+        .filter(models.ChatMessage.session_id == session_id)
+        .order_by(models.ChatMessage.created_at.desc())
+    )
