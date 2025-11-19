@@ -12,8 +12,8 @@ interface ChatWindowProps {
 
 export function ChatWindow({ messages, isPending }: ChatWindowProps) {
   return (
-    <ScrollArea className="flex-1 p-4">
-      <div className="space-y-4 max-w-3xl mx-auto">
+    <ScrollArea className="h-full w-full px-4">
+      <div className="space-y-4 max-w-3xl mx-auto py-4">
         {messages.length === 0 && (
           <div className="text-center text-muted-foreground mt-20">
             <Bot className="w-12 h-12 mx-auto mb-4 opacity-50" />

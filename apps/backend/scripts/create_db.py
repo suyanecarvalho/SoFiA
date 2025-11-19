@@ -16,6 +16,7 @@ INITIAL_CATEGORIES = [
     {"id": 4, "name": "Saúde"},
     {"id": 5, "name": "Lazer & Entretenimento"},
     {"id": 6, "name": "Educação"},
+    {"id": 7, "name": "Gastos Pessoais"},
 ]
 
 

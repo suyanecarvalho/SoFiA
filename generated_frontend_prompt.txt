@@ -99,14 +99,21 @@ export function useMessages(sessionId: string | null) {
       return messageService.getMessages(sessionId)
     },
     enabled: !!sessionId,
-    // Keep previous data while loading new session data to prevent empty screen flash
-    placeholderData: (prev) => prev,
+    // CHANGED: Only use placeholder data if we are switching between valid sessions.
+    // If sessionId is null (New Chat), we want to clear immediately, not show old messages.
+    placeholderData: (previousData, previousQuery) => {
+      if (!sessionId) return undefined
+      return previousData
+    },
     select: (data) => {
-      // Ensure strict chronological order
-      return [...data].sort(
-        (a, b) =>
-          new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-      )
+      if (!data) return []
+      // CHANGED: Strict chronological order (Oldest -> Newest)
+      // This ensures new messages (Date.now()) always appear at the bottom
+      return [...data].sort((a, b) => {
+        const dateA = new Date(a.created_at).getTime()
+        const dateB = new Date(b.created_at).getTime()
+        return dateA - dateB
+      })
     },
   })
 }
@@ -124,30 +131,22 @@ export function useSendMessage() {
     }) => messageService.sendMessage(sessionId, data),
 
     onMutate: async ({ sessionId, data }) => {
-      // 1. Stop any background refetches so they don't overwrite our update
       await queryClient.cancelQueries({ queryKey: ['messages', sessionId] })
-
-      // 2. Snapshot the previous value
       const previousMessages = queryClient.getQueryData<Message[]>([
         'messages',
         sessionId,
       ])
 
-      // 3. Create a temporary user message object
       const userMessage: Message = {
-        id: Date.now(), // Temp ID
+        id: Date.now(),
         role: 'user',
         content: data.message,
         created_at: new Date().toISOString(),
         meta_data: null,
       }
-
-      // 4. Manually update the cache: Append user message to the end
       queryClient.setQueryData<Message[]>(['messages', sessionId], (old) => {
         return old ? [...old, userMessage] : [userMessage]
       })
-
-      // Return context for rollback if needed
       return { previousMessages }
     },
 
@@ -350,7 +349,7 @@ export const messageService = {
     const { data } = await apiClient.get<PaginatedResponse<Message>>(
       `/api/v1/chat/sessions/${sessionId}/messages`
     )
-    return data.items ? data.items.reverse() : []
+    return data.items || []
   },
 
   async sendMessage(
@@ -1131,15 +1130,12 @@ const ActiveChatHeader = ({
 
 const Chat = () => {
   const { sessionId } = useParams<{ sessionId: string }>()
-
   const [message, setMessage] = useState('')
   const [modelPreference, setModelPreference] =
     useState<ModelPreference>('remote')
   const [modelName, setModelName] = useState<string>('gemini-2.5-pro')
-
   const { openModal } = useUIStore()
   const isAuthenticated = useUserStore((state) => state.isAuthenticated())
-
   const { data: serverMessages } = useMessages(sessionId || null)
   const { mutate: sendMessage, isPending: isSending } = useSendMessage()
   const { mutateAsync: createSession, isPending: isCreating } =
@@ -1161,8 +1157,9 @@ const Chat = () => {
   }
 
   const displayMessages = useMemo(() => {
+    if (!sessionId) return []
     return serverMessages || []
-  }, [serverMessages])
+  }, [serverMessages, sessionId])
 
   const handleSendMessage = async (textOverride?: string) => {
     const textToSend = textOverride || message
@@ -2220,7 +2217,7 @@ NEXT TASK:
 
 
 
-the order of the messages is just totally broken, and when i go from a chat session screen to the create new one the old still stays onf the background
+currently the chat isnt being scrollable
 
 
 
