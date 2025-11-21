@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils'
 import type { UIMessage } from '@/features/chat/types'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Bot, User } from 'lucide-react'
+import SuggestionCard from '@/components/SuggestionCard'
 
 interface ChatWindowProps {
   messages: UIMessage[]
@@ -10,7 +11,14 @@ interface ChatWindowProps {
   handleSendMessage: (text?: string) => void
 }
 
-export function ChatWindow({ messages, isPending }: ChatWindowProps) {
+export function ChatWindow({ messages, isPending, handleSendMessage }: ChatWindowProps) {
+  const suggestions = [
+    "Criar meta Viagem R$ 300/mês",
+    "Quanto gastei em transporte este mês?",
+    "Adicionar gasto com alimentação",
+    "Como economizar 100 reais por semana?",
+  ];
+
   return (
     <ScrollArea className="h-full w-full px-4">
       <div className="space-y-4 max-w-3xl mx-auto py-4">
@@ -18,6 +26,12 @@ export function ChatWindow({ messages, isPending }: ChatWindowProps) {
           <div className="text-center text-muted-foreground mt-20">
             <Bot className="w-12 h-12 mx-auto mb-4 opacity-50" />
             <p>Comece uma conversa com o SofIA.</p>
+            <p>Sugestões rápidas</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-5">
+              {suggestions.map((s, i) => (
+                <SuggestionCard key={i} text={s} onClick={() => handleSendMessage(s)} />
+              ))}
+            </div>
           </div>
         )}
 

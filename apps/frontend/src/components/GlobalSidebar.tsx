@@ -111,7 +111,7 @@ export function GlobalSidebar() {
         </Button>
 
         <div className="mt-4 flex flex-col gap-2">
-          <Button
+          {/*<Button
             variant="ghost"
             size="icon"
             onClick={() => handleNavigation('/dashboard')}
@@ -122,7 +122,7 @@ export function GlobalSidebar() {
             title="Dashboard"
           >
             <LayoutDashboard className="h-5 w-5" />
-          </Button>
+          </Button>*/}
           <Button
             variant="ghost"
             size="icon"
@@ -316,7 +316,7 @@ export function GlobalSidebar() {
 
       {/* Footer - User Dropdown */}
       <div className="border-t p-2 bg-background">
-        <DropdownMenu>
+        {/*<DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="w-full justify-start px-2 h-12">
               <div className="flex items-center gap-2 w-full">
@@ -335,9 +335,6 @@ export function GlobalSidebar() {
                   <span className="truncate text-sm font-medium w-full text-left">
                     {user?.name || 'User'}
                   </span>
-                  <span className="truncate text-xs text-muted-foreground w-full text-left">
-                    Free Plan
-                  </span>
                 </div>
                 <MoreHorizontal className="ml-auto h-4 w-4 text-muted-foreground" />
               </div>
@@ -353,7 +350,33 @@ export function GlobalSidebar() {
               <Settings className="mr-2 h-4 w-4" /> Settings
             </DropdownMenuItem>
           </DropdownMenuContent>
-        </DropdownMenu>
+        </DropdownMenu>*/}
+        <Button variant="ghost" className="w-full justify-start px-2 h-12" onClick={() => navigate('/profile')}>
+          <div className="flex items-center gap-2 w-full">
+            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 border">
+              {user?.profile_pic ? (
+                <img
+                  src={user.profile_pic}
+                  alt="User"
+                  className="h-full w-full rounded-full object-cover"
+                />
+              ) : (
+                <UserIcon className="h-4 w-4 text-primary" />
+              )}
+            </div>
+            <div className="flex flex-col items-start overflow-hidden">
+              <span className="truncate text-sm font-medium w-full text-left">
+                Perfil
+              </span>
+            </div>
+          </div>
+        </Button>
+        <Button variant="ghost" className="w-full justify-start px-2 h-12" onClick={() => navigate('/settings')}>
+          <div className="flex items-center gap-2 w-full">
+            <Settings className="mr-2 ml-2 h-4 w-4" />
+            Ajustes
+          </div>
+        </Button>
       </div>
     </div>
   )

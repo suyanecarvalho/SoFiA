@@ -61,7 +61,7 @@ export function OnboardingModal() {
     <Dialog open={activeModal === 'onboarding'} onOpenChange={handleOpenChange}>
       <DialogContent
         className="sm:max-w-[425px]"
-        onInteractOutside={(e) => e.preventDefault()}
+        onInteractOutside={() => closeModal()}
       >
         <DialogHeader>
           <DialogTitle>Bem-vindo ao SoFiA</DialogTitle>

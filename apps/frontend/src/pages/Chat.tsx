@@ -47,6 +47,13 @@ const Chat = () => {
   const { mutateAsync: createSession, isPending: isCreating } =
     useCreateSession()
 
+  const suggestions = [
+    "Criar meta Viagem R$ 300/mês",
+    "Quanto gastei em transporte este mês?",
+    "Adicionar gasto com alimentação",
+    "Como economizar 100 reais por semana?",
+  ];
+
   useEffect(() => {
     if (!isAuthenticated) {
       openModal('onboarding')
@@ -104,6 +111,10 @@ const Chat = () => {
       setMessage(textToSend)
     }
   }
+
+  const handleSuggestionClick = (suggestion: string) => {
+    setMessage(suggestion);
+  };
 
   return (
     <div className="flex h-full flex-col relative">
