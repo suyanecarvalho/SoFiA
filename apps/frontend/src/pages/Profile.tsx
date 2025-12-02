@@ -1,10 +1,10 @@
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Separator } from '@/components/ui/separator'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { User, Mail, Phone, Calendar } from 'lucide-react'
+import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
+import { Button } from "../components/ui/button";
+import { Card } from "../components/ui/card";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import { Separator } from "../components/ui/separator";
+import { Calendar, Mail, Phone, User } from "lucide-react";
 
 const Profile = () => {
   return (
@@ -30,9 +30,6 @@ const Profile = () => {
             <div className="space-y-2">
               <h2 className="text-2xl font-semibold">Usuário SofIA</h2>
               <p className="text-muted-foreground">Membro desde Janeiro 2024</p>
-              <Button variant="outline" size="sm">
-                Alterar Foto
-              </Button>
             </div>
           </div>
 
@@ -79,7 +76,10 @@ const Profile = () => {
                 <Calendar className="w-4 h-4" />
                 Data de Nascimento
               </Label>
-              <Input id="birthdate" type="date" />
+              <Input 
+              id="birthdate" 
+              type="date" 
+              />
             </div>
           </div>
 
@@ -92,7 +92,7 @@ const Profile = () => {
         </Card>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Profile
+export default Profile;
