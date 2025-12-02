@@ -4,6 +4,8 @@ import TransactionItem from "../components/TransactionItem";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "../components/ui/chart";
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
 import { Button } from "../components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../components/ui/dialog";
+import { ScrollArea } from "../components/ui/scroll-area";
 
 const Dashboard = () => {
   const categoryData = [
@@ -88,6 +90,91 @@ const Dashboard = () => {
       category: "Saúde",
       amount: 89.00,
       date: "26 Nov",
+      type: "expense" as const,
+    },
+  ];
+
+  const allTransactions = [
+    ...recentTransactions,
+    {
+      id: 7,
+      icon: "shopping" as const,
+      title: "Padaria Central",
+      category: "Alimentação",
+      amount: 45.80,
+      date: "25 Nov",
+      type: "expense" as const,
+    },
+    {
+      id: 8,
+      icon: "transport" as const,
+      title: "Combustível",
+      category: "Transporte",
+      amount: 250.00,
+      date: "24 Nov",
+      type: "expense" as const,
+    },
+    {
+      id: 9,
+      icon: "entertainment" as const,
+      title: "Cinema",
+      category: "Lazer",
+      amount: 120.00,
+      date: "23 Nov",
+      type: "expense" as const,
+    },
+    {
+      id: 10,
+      icon: "shopping" as const,
+      title: "Mercado São Jorge",
+      category: "Alimentação",
+      amount: 289.30,
+      date: "22 Nov",
+      type: "expense" as const,
+    },
+    {
+      id: 11,
+      icon: "income" as const,
+      title: "Freelance",
+      category: "Receita",
+      amount: 1500.00,
+      date: "21 Nov",
+      type: "income" as const,
+    },
+    {
+      id: 12,
+      icon: "health" as const,
+      title: "Consulta Médica",
+      category: "Saúde",
+      amount: 350.00,
+      date: "20 Nov",
+      type: "expense" as const,
+    },
+    {
+      id: 13,
+      icon: "transport" as const,
+      title: "Uber",
+      category: "Transporte",
+      amount: 32.50,
+      date: "19 Nov",
+      type: "expense" as const,
+    },
+    {
+      id: 14,
+      icon: "entertainment" as const,
+      title: "Spotify",
+      category: "Lazer",
+      amount: 21.90,
+      date: "18 Nov",
+      type: "expense" as const,
+    },
+    {
+      id: 15,
+      icon: "shopping" as const,
+      title: "Farmácia Popular",
+      category: "Saúde",
+      amount: 156.00,
+      date: "17 Nov",
       type: "expense" as const,
     },
   ];
@@ -208,9 +295,33 @@ const Dashboard = () => {
       <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Transações Recentes</CardTitle>
-            <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80">
-              Ver todas
-            </Button>
+            <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80">
+                Ver todas
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-3xl max-h-[85vh]">
+              <DialogHeader>
+                <DialogTitle className="text-2xl">Todas as Transações</DialogTitle>
+              </DialogHeader>
+              <ScrollArea className="h-[65vh] pr-4">
+                <div className="space-y-0">
+                  {allTransactions.map((transaction) => (
+                    <TransactionItem
+                      key={transaction.id}
+                      icon={transaction.icon}
+                      title={transaction.title}
+                      category={transaction.category}
+                      amount={transaction.amount}
+                      date={transaction.date}
+                      type={transaction.type}
+                    />
+                  ))}
+                </div>
+              </ScrollArea>
+            </DialogContent>
+          </Dialog>
           </CardHeader>
           <CardContent>
             <div className="space-y-0">
