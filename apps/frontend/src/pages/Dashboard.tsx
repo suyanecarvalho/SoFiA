@@ -1,372 +1,235 @@
-import { Card } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import {
-  TrendingUp,
-  TrendingDown,
-  Wallet,
-  Target,
-  Calendar,
-  ArrowUpRight,
-  ArrowDownRight,
-  Plus,
-} from 'lucide-react'
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from '@/components/ui/chart'
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  ResponsiveContainer,
-  LineChart,
-  Line,
-} from 'recharts'
-import { useNavigate } from 'react-router-dom'
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import MetricCard from "../components/MetricCard";
+import TransactionItem from "../components/TransactionItem";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "../components/ui/chart";
+import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
+import { Button } from "../components/ui/button";
 
 const Dashboard = () => {
-  const navigate = useNavigate()
+  const categoryData = [
+    { name: "Alimentação", value: 22, color: "#07ad18"},
+    { name: "Transporte", value: 16, color: "#14d9c5" },
+    { name: "Moradia", value: 37, color: "#9534eb" },
+    { name: "Lazer", value: 11, color: "#6823e8" },
+    { name: "Saúde", value: 7, color: "#d92b14" },
+    { name: "Outros", value: 7, color: "#acacad" },
+  ];
 
-  const currentBalance = 4250.8
-  const monthlyIncome = 7500.0
-  const monthlyExpenses = 3249.2
-  const savingsRate = (
-    ((monthlyIncome - monthlyExpenses) / monthlyIncome) *
-    100
-  ).toFixed(1)
+  const monthlyData = [
+    { month: "Jul", receitas: 7500, despesas: 5200 },
+    { month: "Ago", receitas: 8200, despesas: 6100 },
+    { month: "Set", receitas: 9100, despesas: 5800 },
+    { month: "Out", receitas: 8700, despesas: 5900 },
+    { month: "Nov", receitas: 10500, despesas: 6200 },
+    { month: "Dez", receitas: 8500, despesas: 4900 },
+  ];
 
-  const expensesByCategory = [
-    {
-      category: 'Alimentação',
-      amount: 850.5,
-      percentage: 26,
-      color: 'hsl(var(--chart-1))',
+  const chartConfig = {
+    receitas: {
+      label: "Receitas",
+      color: "#07ad18",
     },
-    {
-      category: 'Transporte',
-      amount: 620.3,
-      percentage: 19,
-      color: 'hsl(var(--chart-2))',
+    despesas: {
+      label: "Despesas",
+      color: "#d92b14",
     },
-    {
-      category: 'Moradia',
-      amount: 1200.0,
-      percentage: 37,
-      color: 'hsl(var(--chart-3))',
-    },
-    {
-      category: 'Lazer',
-      amount: 378.4,
-      percentage: 12,
-      color: 'hsl(var(--chart-4))',
-    },
-    {
-      category: 'Outros',
-      amount: 200.0,
-      percentage: 6,
-      color: 'hsl(var(--chart-5))',
-    },
-  ]
-
-  const monthlyTrend = [
-    { month: 'Jan', receitas: 7200, despesas: 3100 },
-    { month: 'Fev', receitas: 7400, despesas: 3300 },
-    { month: 'Mar', receitas: 7100, despesas: 2900 },
-    { month: 'Abr', receitas: 7600, despesas: 3400 },
-    { month: 'Mai', receitas: 7500, despesas: 3249 },
-  ]
+  };
 
   const recentTransactions = [
     {
       id: 1,
-      description: 'Supermercado Extra',
-      amount: -125.5,
-      category: 'Alimentação',
-      date: '18/05',
+      icon: "shopping" as const,
+      title: "Supermercado Extra",
+      category: "Alimentação",
+      amount: 342.50,
+      date: "Hoje",
+      type: "expense" as const,
     },
     {
       id: 2,
-      description: 'Salário',
-      amount: 7500.0,
-      category: 'Receita',
-      date: '15/05',
+      icon: "income" as const,
+      title: "Salário",
+      category: "Receita",
+      amount: 8500.00,
+      date: "Hoje",
+      type: "income" as const,
     },
     {
       id: 3,
-      description: 'Uber',
-      amount: -32.8,
-      category: 'Transporte',
-      date: '17/05',
+      icon: "transport" as const,
+      title: "Uber",
+      category: "Transporte",
+      amount: 28.90,
+      date: "Ontem",
+      type: "expense" as const,
     },
     {
       id: 4,
-      description: 'Netflix',
-      amount: -49.9,
-      category: 'Lazer',
-      date: '16/05',
+      icon: "housing" as const,
+      title: "Aluguel",
+      category: "Moradia",
+      amount: 2100.00,
+      date: "28 Nov",
+      type: "expense" as const,
     },
-  ]
-
-  const savingsGoals = [
-    { name: 'Viagem de Férias', current: 2400, target: 5000, progress: 48 },
-    { name: 'Fundo de Emergência', current: 8500, target: 15000, progress: 57 },
-  ]
+    {
+      id: 5,
+      icon: "entertainment" as const,
+      title: "Netflix",
+      category: "Lazer",
+      amount: 55.90,
+      date: "27 Nov",
+      type: "expense" as const,
+    },
+    {
+      id: 6,
+      icon: "health" as const,
+      title: "Farmácia",
+      category: "Saúde",
+      amount: 89.00,
+      date: "26 Nov",
+      type: "expense" as const,
+    },
+  ];
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
-          <p className="text-muted-foreground">
-            Visão geral das suas finanças em tempo real
-          </p>
-        </div>
-        <Button className="gap-2">
-          <Plus className="w-4 h-4" />
-          Nova Transação
-        </Button>
+    <div className="p-8 space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+        <p className="text-muted-foreground mt-1">Bem-vindo de volta, Sr. Fulano!</p>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <MetricCard
+            title="Saldo Total"
+            value="R$ 12.450,00"
+            change="+12% este mês"
+            trend="up"
+            icon="wallet"
+          />
+          <MetricCard
+            title="Receitas"
+            value="R$ 8.500,00"
+            change="+8% vs mês anterior"
+            trend="up"
+            icon="income"
+          />
+          <MetricCard
+            title="Despesas"
+            value="R$ 5.690,00"
+            change="-3% vs mês anterior"
+            trend="down"
+            icon="expense"
+          />
+          <MetricCard
+            title="Economia"
+            value="R$ 2.810,00"
+            change="33% da receita"
+            trend="neutral"
+            icon="savings"
+          />
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-              <Wallet className="w-5 h-5 text-primary" />
-            </div>
-            <Badge variant="secondary" className="gap-1">
-              <Calendar className="w-3 h-3" />
-              Maio
-            </Badge>
-          </div>
-          <p className="text-sm text-muted-foreground mb-1">Saldo Atual</p>
-          <p className="text-2xl font-bold">R$ {currentBalance.toFixed(2)}</p>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
-            </div>
-            <ArrowUpRight className="w-4 h-4 text-green-600 dark:text-green-400" />
-          </div>
-          <p className="text-sm text-muted-foreground mb-1">Receitas</p>
-          <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-            R$ {monthlyIncome.toFixed(2)}
-          </p>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center">
-              <TrendingDown className="w-5 h-5 text-red-600 dark:text-red-400" />
-            </div>
-            <ArrowDownRight className="w-4 h-4 text-red-600 dark:text-red-400" />
-          </div>
-          <p className="text-sm text-muted-foreground mb-1">Despesas</p>
-          <p className="text-2xl font-bold text-red-600 dark:text-red-400">
-            R$ {monthlyExpenses.toFixed(2)}
-          </p>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-              <Target className="w-5 h-5 text-primary" />
-            </div>
-            <Badge variant="default">{savingsRate}%</Badge>
-          </div>
-          <p className="text-sm text-muted-foreground mb-1">Taxa de Economia</p>
-          <p className="text-2xl font-bold">
-            R$ {(monthlyIncome - monthlyExpenses).toFixed(2)}
-          </p>
-        </Card>
-      </div>
-
-      {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Expenses by Category */}
-        <Card className="p-6">
-          <h2 className="text-lg font-semibold mb-6">Despesas por Categoria</h2>
-          <ChartContainer
-            config={{
-              amount: {
-                label: 'Valor',
-                color: 'hsl(var(--chart-1))',
-              },
-            }}
-            className="h-[300px]"
-          >
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={expensesByCategory}>
-                <XAxis
-                  dataKey="category"
-                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis
-                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                  tickLine={false}
-                  axisLine={false}
-                  tickFormatter={(value) => `R$ ${value}`}
-                />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar
-                  dataKey="amount"
-                  fill="hsl(var(--primary))"
-                  radius={[8, 8, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartContainer>
-        </Card>
-
-        {/* Monthly Trend */}
-        <Card className="p-6">
-          <h2 className="text-lg font-semibold mb-6">Tendência Mensal</h2>
-          <ChartContainer
-            config={{
-              receitas: {
-                label: 'Receitas',
-                color: 'hsl(var(--chart-2))',
-              },
-              despesas: {
-                label: 'Despesas',
-                color: 'hsl(var(--chart-1))',
-              },
-            }}
-            className="h-[300px]"
-          >
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={monthlyTrend}>
-                <XAxis
-                  dataKey="month"
-                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis
-                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                  tickLine={false}
-                  axisLine={false}
-                  tickFormatter={(value) => `R$ ${value}`}
-                />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Line
-                  type="monotone"
-                  dataKey="receitas"
-                  stroke="hsl(var(--chart-2))"
-                  strokeWidth={2}
-                  dot={false}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="despesas"
-                  stroke="hsl(var(--chart-1))"
-                  strokeWidth={2}
-                  dot={false}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </ChartContainer>
-        </Card>
-      </div>
-
-      {/* Bottom Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Transactions */}
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-semibold">Transações Recentes</h2>
-            <Button variant="ghost" size="sm">
-              Ver Todas
-            </Button>
-          </div>
-          <div className="space-y-4">
-            {recentTransactions.map((transaction) => (
-              <div
-                key={transaction.id}
-                className="flex items-center justify-between"
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                      transaction.amount > 0
-                        ? 'bg-green-500/10'
-                        : 'bg-red-500/10'
-                    }`}
+        {/* Pie Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Gastos por Categoria</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={chartConfig} className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={categoryData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={100}
+                    paddingAngle={2}
+                    dataKey="value"
                   >
-                    {transaction.amount > 0 ? (
-                      <ArrowUpRight className="w-5 h-5 text-green-600 dark:text-green-400" />
-                    ) : (
-                      <ArrowDownRight className="w-5 h-5 text-red-600 dark:text-red-400" />
-                    )}
-                  </div>
-                  <div>
-                    <p className="font-medium text-sm">
-                      {transaction.description}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {transaction.category} · {transaction.date}
-                    </p>
-                  </div>
+                    {categoryData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                </PieChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+            <div className="grid grid-cols-2 gap-3 mt-6">
+              {categoryData.map((category, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <div
+                    className="w-3 h-3 rounded-full"
+                    style={{ backgroundColor: category.color }}
+                  />
+                  <span className="text-sm text-foreground">{category.name}</span>
+                  <span className="text-sm font-semibold text-foreground ml-auto">
+                    {category.value}%
+                  </span>
                 </div>
-                <p
-                  className={`font-semibold ${
-                    transaction.amount > 0
-                      ? 'text-green-600 dark:text-green-400'
-                      : 'text-red-600 dark:text-red-400'
-                  }`}
-                >
-                  {transaction.amount > 0 ? '+' : ''}R${' '}
-                  {Math.abs(transaction.amount).toFixed(2)}
-                </p>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </CardContent>
         </Card>
 
-        {/* Savings Goals */}
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-semibold">Metas de Economia</h2>
-            <Button variant="ghost" size="sm" onClick={() => navigate('/chat')}>
-              Criar Meta
-            </Button>
-          </div>
-          <div className="space-y-6">
-            {savingsGoals.map((goal, index) => (
-              <div key={index} className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium">{goal.name}</span>
-                  <span className="text-muted-foreground">
-                    R$ {goal.current} / R$ {goal.target}
-                  </span>
-                </div>
-                <div className="relative h-2 bg-muted rounded-full overflow-hidden">
-                  <div
-                    className="absolute inset-y-0 left-0 bg-primary rounded-full transition-all"
-                    style={{ width: `${goal.progress}%` }}
+        {/* Bar Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Evolução Mensal</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={chartConfig} className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={monthlyData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis
+                    dataKey="month"
+                    stroke="hsl(var(--muted-foreground))"
+                    fontSize={12}
                   />
-                </div>
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{goal.progress}% completo</span>
-                  <span>
-                    Faltam R$ {(goal.target - goal.current).toFixed(2)}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
+                  <YAxis
+                    stroke="hsl(var(--muted-foreground))"
+                    fontSize={12}
+                    tickFormatter={(value) => `${value / 1000}k`}
+                  />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Legend />
+                  <Bar dataKey="receitas" fill="#07ad18" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="despesas" fill="#d92b14" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </CardContent>
         </Card>
       </div>
-    </div>
-  )
-}
 
-export default Dashboard
+      <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Transações Recentes</CardTitle>
+            <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80">
+              Ver todas
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-0">
+              {recentTransactions.map((transaction) => (
+                <TransactionItem
+                  key={transaction.id}
+                  icon={transaction.icon}
+                  title={transaction.title}
+                  category={transaction.category}
+                  amount={transaction.amount}
+                  date={transaction.date}
+                  type={transaction.type}
+                />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+    </div>
+  );
+};
+
+export default Dashboard;
