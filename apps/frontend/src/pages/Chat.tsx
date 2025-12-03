@@ -1,10 +1,8 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import { ChatWindow } from '@/components/chat/ChatWindow'
 import { MessageInput } from '@/components/chat/MessageInput'
 import { ModelSelector } from '@/components/chat/ModelSelector'
-import { useUIStore } from '@/stores/uiStore'
-import { useUserStore } from '@/stores/userStore'
 import {
   useMessages,
   useSendMessage,
@@ -40,18 +38,10 @@ const Chat = () => {
   const [modelPreference, setModelPreference] =
     useState<ModelPreference>('remote')
   const [modelName, setModelName] = useState<string>('gemini-2.5-pro')
-  const { openModal } = useUIStore()
-  const isAuthenticated = useUserStore((state) => state.isAuthenticated())
   const { data: serverMessages } = useMessages(sessionId || null)
   const { mutate: sendMessage, isPending: isSending } = useSendMessage()
   const { mutateAsync: createSession, isPending: isCreating } =
     useCreateSession()
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      openModal('onboarding')
-    }
-  }, [isAuthenticated, openModal])
 
   const handlePreferenceChange = (newPref: ModelPreference) => {
     setModelPreference(newPref)
@@ -103,10 +93,6 @@ const Chat = () => {
       toast.error('Erro ao iniciar conversa')
       setMessage(textToSend)
     }
-  }
-
-  const handleSuggestionClick = (suggestion: string) => {
-    setMessage(suggestion)
   }
 
   return (
