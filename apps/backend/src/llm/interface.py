@@ -1,21 +1,27 @@
 from abc import ABC, abstractmethod
-from typing import List
-from apps.backend.src.db.schemas.transaction import Transaction
+from typing import List, Dict, Any
+
+
+class LLMMessage(Dict):
+    role: str
+    content: str
 
 
 class LLMInterface(ABC):
     """
-    An abstract interface for a self-contained LLM service.
-
+    An abstract interface for a self-contained LLM services
+    that supports conversational history and structured data extraction.
     """
 
     @abstractmethod
-    def get_nl_answer(self, prompt: str) -> str:
+    def get_chat_response(self, messages: List[LLMMessage]) -> str:
         """
-        Processes a prompt and returns a complete, natural language answer.
+        Processes a list of messages (the conversation history) and
+        returns a complete, natural language answer.
 
         Args:
-            prompt: The raw question from the user.
+            messages: The full history of the conversation, including
+                      system prompts and context data.
 
         Returns:
             A final, natural language string to be shown to the user.
@@ -23,28 +29,19 @@ class LLMInterface(ABC):
         pass
 
     @abstractmethod
-    def get_structured_answer(self, prompt: str) -> List[Transaction]:
+    def extract_structured_data(
+        self, prompt: str, output_schema: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
-        Processes a prompt to retrieve structured data from the database.
-        This is the core data retrieval engine for benchmarking.
+        A generic "tool use" function that processes a prompt to extract
+        structured data according to a specified JSON schema.
 
         Args:
-            prompt: The raw question from the user.
+            prompt: The raw user input.
+            output_schema: A JSON schema describing the desired output format.
 
         Returns:
-            A list of Pydantic Transaction objects.
-        """
-        pass
-
-    @abstractmethod
-    def create_transaction_from_prompt(self, prompt: str) -> List[Transaction]:
-        """
-        Parses a prompt, creates new transactions, and saves them to the database.
-
-        Args:
-            prompt: The user's description of one or more transactions.
-
-        Returns:
-            A list of the newly created Pydantic Transaction objects.
+            A dictionary matching the provided output_schema.
+            Returns an empty dict if extraction fails.
         """
         pass
