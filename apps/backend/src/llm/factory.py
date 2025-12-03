@@ -4,27 +4,29 @@ from .RemoteLLM.remote_llm import RemoteLLM
 from .interface import LLMInterface
 
 
-def get_llm_instance(model_type: str, identifier: str = None) -> LLMInterface:
+def get_llm_instance(
+    model_type: str, model_name: str = None, apiKey: str = None
+) -> LLMInterface:
     """
     Factory function to create an instance of an LLM based on its type and an identifier.
 
     Args:
         model_type (str): The type of model, e.g., 'local', 'remote', 'dummy'.
-        identifier (str, optional): The specific model name for local LLMs,
-                                    or the API key for remote LLMs.
+        model_name (str, optional): The specific model name for LLMs,
+        model_name (str, optional): The api key for Remote LLMs,
 
     Returns:
         LLMInterface: An instantiated LLM class.
     """
     if model_type == "local":
-        if not identifier:
+        if not model_name:
             raise ValueError("A model name is required for local LLMs.")
-        return LocalLLM(model_name=identifier)
+        return LocalLLM(model_name=model_name)
 
     elif model_type == "remote":
-        if not identifier:
+        if not apiKey:
             raise ValueError("An API key is required for remote LLMs.")
-        return RemoteLLM(api_key=identifier)
+        return RemoteLLM(api_key=apiKey, model_name=model_name)
 
     elif model_type == "dummy":
         return DummyLLM()

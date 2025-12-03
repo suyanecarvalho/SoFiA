@@ -1,5 +1,3 @@
-# --- START OF FILE api/endpoints/transactions.py ---
-
 from typing import List, Optional
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
@@ -13,7 +11,7 @@ router = APIRouter()
 
 
 @router.post(
-    "/",
+    "",
     response_model=transaction_schema.Transaction,
     status_code=status.HTTP_201_CREATED,
 )
@@ -30,7 +28,7 @@ def create_new_transaction(
     return crud_transaction.create_transaction(db=db, transaction=transaction)
 
 
-@router.get("/", response_model=List[transaction_schema.Transaction])
+@router.get("", response_model=List[transaction_schema.Transaction])
 def read_transactions(
     skip: int = 0,
     limit: int = 100,

@@ -1,128 +1,157 @@
-from pathlib import Path
-import re
-from fastapi import APIRouter, HTTPException, status
-from typing import Any
-from pydantic import BaseModel
-from langchain_ollama.llms import OllamaLLM
-from langchain_core.prompts import ChatPromptTemplate
-from langchain.messages import SystemMessage, HumanMessage
-import os
-import joblib
-import json
-from datetime import datetime
+from typing import List
 
-# ========== CONFIGURAÇÕES ==========
-os.environ["OLLAMA_NO_GPU"] = "1"
+from fastapi import APIRouter, status, Depends, HTTPException, Path, Query
+from fastapi_pagination import Page
+from fastapi_pagination.ext.sqlalchemy import paginate
+from sqlalchemy.orm import Session
+from src.db.schemas.chat import (
+    ChatRequest,
+    ChatResponse,
+    ChatSessionInit,
+    ChatSessionUpdate,
+    ChatSessionRead, MessageRead,
+)
+from src.services.chat_service import ChatService
+from src.api.deps import get_chat_service
+from src.db.database.connection import get_db
+from src.db.crud import crud_chat
+from src.utils.constants import APPLICATION_USER_ID
 
 router = APIRouter()
 
-# ====== CARREGAR MODELO DE INTENÇÃO ======
-try:
-    models_path = os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", "train_model")
-    
-    vectorizer = joblib.load(os.path.join(models_path, "vetorizer.joblib"))
-    clf_transaction = joblib.load(os.path.join(models_path, "model_transaction.joblib"))
-    clf_type_transaction = joblib.load(os.path.join(models_path, "model_type_transaction.joblib"))
-    clf_category = joblib.load(os.path.join(models_path, "model_category.joblib"))
-    
-    print("✅ Modelos de intenção carregado com sucesso.")
-except Exception as e:
-    print("⚠️ Erro ao carregar modelos de intenção:", e)
-    vectorizer =clf_transaction = clf_type_transaction = clf_category = None
-
-llm = OllamaLLM(model="mistral", temperature=0)
-
-system_mes = SystemMessage(content="Você e um chatbot de assistência financeira para os usuários. " \
-            "Seu principal obetivo é ajudar os usuários a gerenciar suas finanças pessoais, " \
-            "fornecendo conselhos sobre orçamento, economia, organização finaceira e relatórios detalhados. " \
-            "Seja amigável, prestativo e profissional em suas respostas." \
-            "Sempre explique conceitos financeiros de maneira clara e simples." \
-            "Incentive os usuários a adotarem boas práticas financeiras e ofereça dicas personalizadas " \
-            "com base nas informações fornecidas por eles."
-            "Sempre deixe claro quais foram os gastos do usuário em cada resposta")
-
-messages = [
-    system_mes,
-    HumanMessage(content="{input}"),
-]
-
-prompt = ChatPromptTemplate.from_messages(messages)
-chain = prompt | llm
-
-class ChatRequest(BaseModel):
-    input: str
-
-
-class ChatResponse(BaseModel):
-    transaction: str
-    type_transaction: str | None = None
-    category: str | None = None
-    resposta: str
 
 @router.post(
-    "/",
+    "/sessions",
+    response_model=ChatResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Start a new chat session with an initial message",
+)
+def start_new_session(
+    request: ChatSessionInit, service: ChatService = Depends(get_chat_service)
+):
+    """
+    Creates a new conversation thread.
+
+    1. Accepts an initial message and LLM settings.
+    2. Generates a title for the session based on the message.
+    3. Returns the initial AI response and the created session ID/Title.
+    """
+    return service.create_session_and_reply(
+        message=request.message,
+        model_preference=request.model_preference,
+        model_name=request.model_name,
+    )
+
+
+@router.put(
+    "/sessions/{session_id}",
+    response_model=ChatSessionRead,
+    status_code=status.HTTP_200_OK,
+    summary="Update chat session details (e.g., Title)",
+)
+def update_session_details(
+    update_data: ChatSessionUpdate,
+    session_id: int = Path(..., description="The ID of the chat session"),
+    db: Session = Depends(get_db),
+):
+    """
+    Updates the title of an existing chat session.
+    """
+    session = crud_chat.update_session(
+        db, session_id=session_id, user_id=APPLICATION_USER_ID, title=update_data.title
+    )
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    return session
+
+
+@router.delete(
+    "/sessions/{session_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete a chat session",
+)
+def delete_chat_session(
+    session_id: int = Path(..., description="The ID of the chat session"),
+    db: Session = Depends(get_db),
+):
+    """
+    Deletes a chat session and all associated messages.
+    """
+    success = crud_chat.delete_session(db, session_id=session_id, user_id=APPLICATION_USER_ID)
+    if not success:
+        raise HTTPException(status_code=404, detail="Session not found")
+    return None
+
+
+@router.post(
+    "/sessions/{session_id}/messages",
     response_model=ChatResponse,
     status_code=status.HTTP_200_OK,
-    summary="Enviar mensagem ao chatbot",
-    response_description="Resposta gerada pelo modelo Ollama",
+    summary="Send message to a specific session",
 )
+def send_message(
+    request: ChatRequest,
+    session_id: int = Path(..., description="The ID of the chat session"),
+    service: ChatService = Depends(get_chat_service),
+    db: Session = Depends(get_db),
+) -> ChatResponse:
+    """
+    Processes a message within an existing context.
+    """
+    session = crud_chat.get_session(db, session_id=session_id, user_id=APPLICATION_USER_ID)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    response_text, action_taken = service.process_user_message(
+        session_id=session_id,
+        message=request.message,
+        model_preference=request.model_preference,
+        model_name=request.model_name,
+    )
+    return ChatResponse(
+        response=response_text,
+        session_id=session_id,
+        action_taken=action_taken
+    )
 
-def chat_with_model(request: ChatRequest) -> Any:
-   
-    try:
-        if not all ([vectorizer, clf_transaction, clf_type_transaction, clf_category]):
-            raise ValueError("Modelos de intenção não carregado.")
-       
-        #vetorizar o input do usuário
-        X_input = vectorizer.transform([request.input])
+@router.get(
+    "/sessions",
+    response_model=List[ChatSessionRead],
+    status_code=status.HTTP_200_OK,
+    summary="Get paginated chat sessions",
+)
+def get_chat_sessions(
+        skip: int = 0,
+        limit: int = Query(default=10, le=100, description="Number of sessions to return (max 100)"),
+        db: Session = Depends(get_db),
+):
+    """
+    Retrieves a list of chat sessions for the current user.
 
-        #  Etapa 1 - Classificação da operação (busca ou entrada)
-        transaction = clf_transaction.predict(X_input)[0]
-        transaction_proba = float(max(clf_transaction.predict_proba(X_input)[0]))
+    - **skip**: Number of records to skip (for pagination).
+    - **limit**: Number of records to return (default 10, max 100).
 
-        type_transaction = None
-        category = None
-        type_proba = category_proba = None
+    Returns the sessions ordered by creation date (newest first).
+    """
+    sessions = crud_chat.get_user_sessions(
+        db, user_id=APPLICATION_USER_ID, skip=skip, limit=limit
+    )
+    return sessions
 
-        #  Etapa 2 - Se for ENTRADA ou BUSCA, detectar tipo (ganho, gasto)
-        if str(transaction).lower() in ["entrada", "busca"]:
-            type_transaction = clf_type_transaction.predict(X_input)[0]
-            type_proba = float(max(clf_type_transaction.predict_proba(X_input)[0]))
-            
-            # Etapa 3 - Se for GASTO, detectar categoria
-            if str(type_transaction).lower() == "gasto" and clf_category is not None:
-                category = clf_category.predict(X_input)[0]
-                category_proba = float(max(clf_category.predict_proba(X_input)[0]))
-
-        # Construção da resposta base (mensagem curta)
-        if str(transaction).lower() == "busca":
-            resposta_base = "🔎 Entendi! Vou buscar informações sobre seus gastos."
-        elif str(transaction).lower() == "entrada":
-            resposta_base = f"✏️ Entendi! Vou registrar: {type_transaction}"
-        else:
-            resposta_base = "🤔 Não entendi muito bem sua intenção. Pode reformular?"
-
-        # se tivermos categoria detectados, acrescenta na mensagem para ambos busca/entrada
-        if category:
-                resposta_base += f" na categoria {category}"
-        if transaction_proba and type_proba and category_proba:
-                resposta_base += f" .(Confiança transação: {transaction_proba:.0%},tipo:{type_proba:.0%},categoria:{category_proba:.0%})"
-
-
-        resposta_llm = chain.invoke({"input": request.input})
-        resposta_final = f"{resposta_base}\n\n💬 {resposta_llm}"
-
-        #  Retorno estruturado
-        return ChatResponse(
-            transaction=transaction,
-            type_transaction=type_transaction,
-            category=category,
-            resposta=str(resposta_final),
-        )
-
-    except Exception as e:
-        print("❌ Erro durante o processamento:", e)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Erro ao processar a requisição: {str(e)}",
-        )
+@router.get(
+    "/sessions/{session_id}/messages",
+    response_model=Page[MessageRead],
+    status_code=status.HTTP_200_OK,
+    summary="Get paginated messages for a session",
+)
+def get_session_messages(
+    session_id: int = Path(..., description="The ID of the chat session"),
+    db: Session = Depends(get_db),
+):
+    """
+    Retrieves messages for a specific chat session.
+    """
+    session = crud_chat.get_session(db, session_id=session_id, user_id=APPLICATION_USER_ID)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    query = crud_chat.get_session_messages(db, session_id)
+    return paginate(db, query)

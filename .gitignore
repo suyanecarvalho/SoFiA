@@ -9,6 +9,10 @@ __pycache__/
 #models
 *.joblib
 
+.vscode/*
+.turbo/*
+.history/*
+
 # Distribution / packaging
 .Python
 build/
@@ -17,8 +21,6 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
 parts/
 sdist/
 var/
@@ -296,3 +298,10 @@ node_modules/
 /apps/backend/benchmarking/benchmark_results.csv
 
 .turbo/
+
+promptBackend.py
+promptFrontend.py
+
+.idea/*
+
+generated_frontend_prompt.txt
