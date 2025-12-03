@@ -1,5 +1,9 @@
-import type { User, CreateUserRequest, UpdateUserRequest } from '../types'
-import apiClient from '@/lib/api/api-client'
+import type {
+  User,
+  CreateUserRequest,
+  UpdateUserRequest,
+} from '../../chat/types'
+import apiClient from '@/lib/api/api-client.ts'
 
 export const userService = {
   async createUser(payload: CreateUserRequest): Promise<User> {
@@ -12,6 +16,11 @@ export const userService = {
       `/api/v1/users/${userId}`,
       payload
     )
+    return data
+  },
+
+  async getCurrentUser(): Promise<User> {
+    const { data } = await apiClient.get<User>('/api/v1/users/me')
     return data
   },
 }

@@ -9,7 +9,7 @@ class LLMMessage(Dict):
 
 class LLMInterface(ABC):
     """
-    An abstract interface for a self-contained LLM service
+    An abstract interface for a self-contained LLM services
     that supports conversational history and structured data extraction.
     """
 

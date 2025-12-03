@@ -24,7 +24,7 @@ def get_user(db: Session = Depends(get_db)):
     if not db_user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Primary user not found. Please create the user first.",
+            detail="Usuário do aplicativo não encontrado.",
         )
 
     return db_user

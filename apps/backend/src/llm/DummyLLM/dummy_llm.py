@@ -9,7 +9,7 @@ class DummyLLM(LLMInterface):
 
     def get_chat_response(self, messages: List[LLMMessage]) -> str:
         """
-        Returns a canned response, useful for testing the service logic.
+        Returns a canned response, useful for testing the services logic.
         """
         last_message = messages[-1]["content"] if messages else ""
         return f"This is a dummy response to your message: '{last_message}'"
@@ -19,6 +19,6 @@ class DummyLLM(LLMInterface):
     ) -> Dict[str, Any]:
         """
         Returns a dummy dictionary, simulating a failed extraction.
-        This forces the service to handle the "no intent" case.
+        This forces the services to handle the "no intent" case.
         """
         return {}

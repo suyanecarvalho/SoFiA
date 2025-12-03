@@ -24,11 +24,11 @@ apiClient.interceptors.response.use(
     if (error.response && shouldShowToast) {
       const errorData = error.response.data as {
         error?: string
-        message?: string
+        detail?: string
         response?: string
       }
       const errorMessage =
-        errorData?.message ||
+        errorData?.detail ||
         errorData?.error ||
         errorData?.response ||
         'Um erro inesperado ocorreu. Tente novamente mais tarde.'

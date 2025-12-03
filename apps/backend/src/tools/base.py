@@ -3,7 +3,7 @@ from typing import Dict, Any, Tuple
 
 
 class BaseTool(ABC):
-    """Base class for all tools that can be executed by the chat service."""
+    """Base class for all tools that can be executed by the chat services."""
 
     @property
     @abstractmethod

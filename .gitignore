@@ -301,3 +301,7 @@ node_modules/
 
 promptBackend.py
 promptFrontend.py
+
+.idea/*
+
+generated_frontend_prompt.txt
