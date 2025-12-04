@@ -1,11 +1,13 @@
 import { NavLink } from "react-router-dom";
-import { Home, MessageSquare, LayoutDashboard, Settings, User, ChevronLeft, ChevronRight } from "lucide-react";
+import { Home, MessageSquare, LayoutDashboard, Settings, User, ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { useState } from "react";
 import { cn } from "../lib/utils";
 import { Button } from "../components/ui/button";
+import { useSessions } from "@/features/chat/hooks/useSessions";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const { data: sessions = [] } = useSessions();
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
@@ -61,10 +63,34 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               )
             }
             title={isCollapsed ? "Chat" : undefined}
+            end
           >
             <MessageSquare className="w-5 h-5" />
             {!isCollapsed && "Chat"}
           </NavLink>
+
+          {/* Chat Sessions List */}
+          {!isCollapsed && sessions.length > 0 && (
+            <div className="ml-3 space-y-1">
+              {sessions.slice(0, 5).map((session) => (
+                <NavLink
+                  key={session.id}
+                  to={`/chat/${session.id}`}
+                  className={({ isActive }) =>
+                    cn(
+                      "flex items-center px-3 py-2 text-xs rounded-lg transition-all truncate",
+                      isActive
+                        ? "bg-[#6186b8] text-[#e6ebf2]"
+                        : "text-[#e6ebf2]/80 hover:bg-[#6186b8]/30 hover:text-[#e6ebf2]"
+                    )
+                  }
+                  title={session.title || `Chat ${session.id}`}
+                >
+                  {session.title || `Chat ${session.id}`}
+                </NavLink>
+              ))}
+            </div>
+          )}
           
           {/*<NavLink
             to="/dashboard"
