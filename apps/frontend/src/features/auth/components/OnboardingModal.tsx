@@ -24,7 +24,7 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>
 
 export function OnboardingModal() {
-  const { activeModal, closeModal } = useUIStore()
+  const { activeModal } = useUIStore()
   const { mutate: createUser, isPending } = useCreateUser()
 
   const {
@@ -40,34 +40,27 @@ export function OnboardingModal() {
   })
 
   const onSubmit = (data: FormData) => {
-    createUser(
-      {
-        name: data.name,
-        api_key: data.api_key || undefined,
-      },
-      {
-        onSuccess: () => {
-          closeModal()
-        },
-      }
-    )
+    createUser({
+      name: data.name,
+      api_key: data.api_key || undefined,
+    })
   }
-  const handleOpenChange = (open: boolean) => {
-    if (!open && activeModal !== 'onboarding') {
-      closeModal()
-    }
+  const preventClose = (e: Event) => {
+    e.preventDefault()
   }
   return (
-    <Dialog open={activeModal === 'onboarding'} onOpenChange={handleOpenChange}>
+    <Dialog open={activeModal === 'onboarding'} onOpenChange={() => {}}>
       <DialogContent
         className="sm:max-w-[425px]"
-        onInteractOutside={() => closeModal()}
+        onPointerDownOutside={preventClose}
+        onEscapeKeyDown={preventClose}
+        onInteractOutside={preventClose}
+        showCloseButton={false}
       >
         <DialogHeader>
           <DialogTitle>Bem-vindo ao SoFiA</DialogTitle>
           <DialogDescription>
-            Para começar, precisamos saber como te chamar. Opcionalmente, insira
-            sua chave de API.
+            Para começar, precisamos saber como te chamar.
           </DialogDescription>
         </DialogHeader>
 
@@ -90,7 +83,7 @@ export function OnboardingModal() {
           <div className="space-y-2">
             <Label htmlFor="api_key" className="flex items-center gap-2">
               <Key className="w-4 h-4" />
-              Chave de API (Opcional)
+              Chave de API do Gemini
             </Label>
             <Input
               id="api_key"
