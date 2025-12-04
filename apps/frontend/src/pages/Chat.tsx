@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { Send } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -11,11 +11,33 @@ import TypingIndicator from '../components/TypingIndicator'
 
 import { useMessages, useSendMessage } from '@/features/chat/hooks/useMessages'
 import { useCreateSession } from '@/features/chat/hooks/useSessions'
+import { useChatStore } from '@/stores/chatStore'
 
 const Chat = () => {
-  const { sessionId } = useParams<{ sessionId: string }>()
+  const { sessionId: urlSessionId } = useParams<{ sessionId: string }>()
+  const navigate = useNavigate()
   const [message, setMessage] = useState('')
   const scrollRef = useRef<HTMLDivElement>(null)
+  
+  const { activeSessionId, setActiveSessionId } = useChatStore()
+  
+  // Use sessionId from URL or from store
+  const sessionId = urlSessionId || activeSessionId
+  
+  // If we have a stored session but no URL, navigate to it
+  useEffect(() => {
+    if (!urlSessionId && activeSessionId) {
+      navigate(`/chat/${activeSessionId}`, { replace: true })
+    }
+  }, [urlSessionId, activeSessionId, navigate])
+  
+  // Update store when URL changes
+  useEffect(() => {
+    if (urlSessionId) {
+      setActiveSessionId(urlSessionId)
+    }
+  }, [urlSessionId, setActiveSessionId])
+  
   const { data: serverMessages } = useMessages(sessionId || null)
   const { mutate: sendMessage, isPending: isSending } = useSendMessage()
   const { mutateAsync: createSession, isPending: isCreating } =

@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { sessionService } from '../services/sessionService'
 import { useUserStore } from '@/stores/userStore'
+import { useChatStore } from '@/stores/chatStore'
 import { useNavigate } from 'react-router-dom'
 import type {
   ChatSession,
@@ -27,6 +28,7 @@ export function useCreateSession() {
   const queryClient = useQueryClient()
   const user = useUserStore((state) => state.user)
   const navigate = useNavigate()
+  const setActiveSessionId = useChatStore((state) => state.setActiveSessionId)
 
   return useMutation({
     mutationFn: async (data: Omit<CreateSessionRequest, 'user_id'>) => {
@@ -39,6 +41,10 @@ export function useCreateSession() {
       queryClient.invalidateQueries({ queryKey: ['sessions', userId] })
       const newSessionId = response.session_id
       const sessionIdStr = newSessionId.toString()
+      
+      // Save session to store for persistence
+      setActiveSessionId(sessionIdStr)
+      
       const initialMessages: Message[] = [
         {
           id: -1,
@@ -65,6 +71,7 @@ export function useCreateSession() {
 export function useDeleteSession() {
   const queryClient = useQueryClient()
   const user = useUserStore((state) => state.user)
+  const { activeSessionId, clearActiveSession } = useChatStore()
 
   return useMutation({
     mutationFn: (sessionId: string) => sessionService.deleteSession(sessionId),
@@ -79,6 +86,11 @@ export function useDeleteSession() {
       queryClient.setQueryData<ChatSession[]>(['sessions', user?.id], (old) =>
         old ? old.filter((session) => session.id.toString() !== sessionId) : []
       )
+      
+      // Clear active session if it's the one being deleted
+      if (activeSessionId === sessionId) {
+        clearActiveSession()
+      }
 
       return { previousSessions }
     },
