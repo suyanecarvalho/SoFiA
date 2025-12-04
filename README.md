@@ -1,133 +1,96 @@
-docker compose down --volumes --remove-orphans --rmi all
-
-
-
-# SoFiA - Soluções Financeiras
+# SoFiA
 
 SoFiA é uma plataforma local para gestão financeira pessoal. Permite que usuários rastreiem, categorizem e analisem suas transações financeiras de forma intuitiva e eficiente através de um chat.
 
-## O Que É SoFiA?
-
-SoFiA funciona como seu assistente financeiro pessoal. A aplicação oferece:
-
-- Registro centralizado de todas as transações financeiras
-- Organização automática em categorias
-- Visualização clara de onde seu dinheiro está indo
-- Análise de padrões de gastos
-- Interface amigável e responsiva
-
-## Como Funciona?
-
-SoFiA é estruturado em duas partes principais:
-
-### Frontend (React + TypeScript)
-Interface web moderna e responsiva onde você gerencia suas finanças. Acesso em http://localhost:5173
-
-### Backend (FastAPI + Python)
-API robusta que processa dados, valida informações e mantém tudo sincronizado. Acesso em http://localhost:8000
-
-### Banco de Dados (SQLite)
-Armazena seguramente todas as suas transações e categorias localmente.
-
-## Pré-requisitos
-
-Antes de começar, instale:
-
-- **Node.js 18+** (https://nodejs.org/)
-- **Python 3.12+** (https://www.python.org/)
-- **pnpm** - Gerenciador de pacotes otimizado
-- **Poetry** - Gerenciador de dependências Python
-
-## Instalação
-
-### 1. Instalar Ferramentas Globais
-
-```bash
-npm install -g pnpm
-pnpm add turbo --global
-```
-
-Instale Poetry em: https://python-poetry.org/docs/#installation
-
-### 2. Clonar e Preparar
-
-```bash
-git clone <url-do-repositorio>
-cd SoFiA
-pnpm install
-```
-
-### 3. Inicializar Banco de Dados
-
-```bash
-cd apps/backend
-poetry run python scripts/create_db.py
-```
-
-## Executar a Aplicação
-
-### Opção 1: Rodar Tudo Junto (Recomendado)
-
-```bash
-pnpm turbo dev
-```
-
-Isso inicia simultaneamente:
-- Frontend em http://localhost:5173
-- Backend em http://localhost:8000
-- Documentação da API em http://localhost:8000/docs
-
-### Opção 2: Rodar Separadamente
-
-**Frontend:**
-```bash
-cd apps/frontend
-pnpm dev
-```
-
-**Backend:**
-```bash
-cd apps/backend
-pnpm dev
-```
-
 ## Estrutura do Projeto
 
-```
+
+
 SoFiA/
-├── apps/
-│   ├── frontend/
-│   │   ├── src/
-│   │   ├── public/
-│   │   └── package.json
-│   │
-│   └── backend/
-│       ├── src/
-│       ├── scripts/
-│       ├── data/
-│       └── pyproject.toml
-│
-├── packages/
-│   └── eslint-config-custom/
-│
-├── turbo.json
-├── pnpm-lock.yaml
-└── package.json
+├─ apps/
+│ ├─ backend/ # Backend FastAPI
+│ └─ frontend/ # Frontend React / T3 Stack
+├─ scripts/
+└─ README.md
+
+
+## Requisitos
+
+- Python 3.12
+- Poetry
+- Node.js (recomenda-se >=18)
+- pnpm ou npm
+- SQLite (ou outro banco, conforme configuração)
+
+## Configuração do Backend
+
+1. Entre na pasta do backend:
+
+```bash
+cd C:\Users\salet\SoFiA\apps\backend
 ```
 
-## Tecnologias Utilizadas
+Instale as dependências com Poetry:
 
-| Componente | Tecnologia |
-|-----------|-----------|
-| Frontend | React 18, TypeScript, Vite |
-| Backend | FastAPI, SQLAlchemy, Pydantic |
-| Database | SQLite |
-| Build | Turborepo, pnpm |
+ O projeto depende do ruff, que ainda não tem suporte oficial para Python 3.12. Para desenvolvimento rápido, comente a linha do ruff no pyproject.toml.
 
-## Recursos Principais
+poetry install
 
-- Dashboard intuitivo de transações
-- Gestão flexível de categorias
-- Validação automática de dados
-- API RESTful bem documentada
-- Banco de dados local e seguro
+
+Rode o backend:
+
+poetry run uvicorn src.main:app --reload
+
+
+O backend ficará disponível em: http://127.0.0.1:8000
+
+Configuração do Frontend
+
+Entre na pasta do frontend:
+
+cd C:\Users\salet\SoFiA\apps\frontend
+
+
+Crie o arquivo de variáveis de ambiente:
+
+notepad .env.local
+
+
+Cole o seguinte conteúdo:
+
+# URL do backend FastAPI
+VITE_API_BASE_URL=http://127.0.0.1:8000
+
+# URL do frontend (para autenticação ou tRPC)
+NEXTAUTH_URL=http://localhost:3000
+
+# Banco de dados local (se necessário)
+DATABASE_URL="sqlite:./dev.db"
+
+
+Importante: VITE_API_BASE_URL precisa ser uma URL válida ou o frontend não irá iniciar.
+
+Instale as dependências:
+
+pnpm install
+# ou npm install
+
+
+Rode o frontend:
+
+pnpm dev
+# ou npm run dev
+
+
+O frontend ficará disponível em: http://localhost:3000
+
+Observações
+
+Sempre rode o backend antes do frontend, para que o frontend consiga se conectar à API.
+
+Se você quiser usar linting, depois ajuste o ruff quando houver suporte a Python 3.12.
+
+Variáveis de ambiente adicionais podem ser necessárias dependendo de funcionalidades extras (tRPC, NextAuth, etc.).
+
+
+Se você quiser, posso também **adicionar badges de status do projeto, versão e links rápidos** p
