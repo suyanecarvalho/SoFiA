@@ -52,12 +52,12 @@ class ExpenseTool(BaseTool):
         RULES:
         1. Extract 'amount' in CENTS (multiply by 100). E.g., "60 reais" -> 6000.
         2. Extract 'description' if stated.
-        3. DATE RULE: Extract 'reference_date' (YYYY-MM-DD) based on the user's text relative to TODAY. 
+        3. CATEGORY RULE: If the user message matches or matches closely one of the AVAILABLE CATEGORIES, extract 'category_name'.
+        4. DATE RULE: Extract 'reference_date' (YYYY-MM-DD) based on the user's text relative to TODAY. 
            - E.g. "mês passado" (last month), "ontem" (yesterday), "dia 5" (day 5 of current month).
            - If no date is mentioned, omit 'reference_date'.
-        4. CATEGORY RULE: ONLY output 'category_name' if the user EXPLICITLY mentions keywords related to a category (e.g., "lunch"->Alimentação, "uber"->Transporte). 
-           - IF THE USER IS VAGUE (e.g., "bought something", "spent money"), DO NOT GUESS. Omit 'category_name'.
-           - It is BETTER to omit the category than to guess wrong.
+
+        IMPORTANT: If the user provides a category, do NOT overwrite the 'description' unless explicitly changed.
 
         Output JSON only.
         """

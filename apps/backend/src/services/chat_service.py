@@ -125,7 +125,7 @@ class ChatService:
         missing = []
         for field in required:
             val = params.get(field)
-            if val in (None, ""):
+            if val in (None, "") or (isinstance(val, (int, float)) and val == 0):
                 missing.append(field)
         return missing
 
