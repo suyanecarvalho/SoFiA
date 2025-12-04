@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
 import { useUserStore } from '@/stores/userStore'
-import { useUpdateUser } from '@/features/chat/hooks/useUser'
+import { useUpdateUser } from '@/features/auth/hooks/useUser.ts'
 import { type ProfileFormValues, profileSchema } from '@/features/profile/types'
 
 export function useProfile() {
