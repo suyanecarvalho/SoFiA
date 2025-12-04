@@ -27,7 +27,7 @@ const MessageBubble = memo(({ role, content }: MessageBubbleProps) => {
         {isUser ? (
           <>
             <AvatarImage src="" />
-            <AvatarFallback className="bg-primary text-primary-foreground">
+            <AvatarFallback className="bg-[#4e6e97] text-[#dbeafe]">
               <User className="h-4 w-4" />
             </AvatarFallback>
           </>
@@ -43,7 +43,7 @@ const MessageBubble = memo(({ role, content }: MessageBubbleProps) => {
         className={cn(
           'relative max-w-[85%] rounded-2xl px-4 py-3 text-sm shadow-sm',
           isUser
-            ? 'bg-primary text-primary-foreground rounded-tr-none'
+            ? 'bg-[#4e6e97] text-[#dbeafe] rounded-tr-none'
             : 'bg-muted text-foreground rounded-tl-none border border-border'
         )}
       >

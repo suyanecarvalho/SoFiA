@@ -23,6 +23,8 @@ const Chat = () => {
   
   // Use sessionId from URL or from store
   const sessionId = urlSessionId || activeSessionId
+
+   const lastMessageRef = useRef<HTMLDivElement | null>(null)
   
   // If we have a stored session but no URL, navigate to it
   useEffect(() => {
@@ -43,11 +45,29 @@ const Chat = () => {
   const { mutateAsync: createSession, isPending: isCreating } =
     useCreateSession()
   const isTyping = isSending || isCreating
+
   const displayMessages = useMemo(() => {
-    return serverMessages || []
+    const msgs = serverMessages ? [...serverMessages] : []
+
+    // Se não existir createdAt, tentamos ordenar por id numérico
+    const safeGetTime = (m: any) => {
+      if (m.createdAt) {
+        const t = new Date(m.createdAt).getTime()
+        return Number.isFinite(t) ? t : 0
+      }
+      // fallback: se id for número
+      if (typeof m.id === 'number') return m.id
+      // fallback final
+      return 0
+    }
+
+    return msgs.sort((a, b) => safeGetTime(a) - safeGetTime(b))
   }, [serverMessages])
+
   useEffect(() => {
-    if (scrollRef.current) {
+    if (lastMessageRef.current) {
+      lastMessageRef.current.scrollIntoView({ behavior: 'auto', block: 'end' })
+    } else if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }
   }, [displayMessages, isTyping])
@@ -127,13 +147,14 @@ const Chat = () => {
         ) : (
           <div ref={scrollRef} className="flex-1 overflow-y-auto px-8 py-6">
             <div className="max-w-3xl mx-auto">
-              {displayMessages.map((msg) => (
-                <MessageBubble
-                  key={msg.id}
-                  role={msg.role}
-                  content={msg.content}
-                />
-              ))}
+              {displayMessages.map((msg, index) => {
+                const isLast = index === displayMessages.length - 1
+                return (
+                  <div key={msg.id ?? `msg-${index}`} ref={isLast ? lastMessageRef : undefined}>
+                    <MessageBubble role={msg.role} content={msg.content} />
+                  </div>
+                )
+              })}
               {isTyping && <TypingIndicator />}
             </div>
           </div>
@@ -156,12 +177,15 @@ const Chat = () => {
               onClick={() => handleSendMessage(undefined)}
               size="icon"
               disabled={isTyping || !message.trim()}
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full h-9 w-9"
+              className="bg-[#4e6e97] absolute right-2 top-1/2 -translate-y-1/2 rounded-full h-9 w-9"
             >
               <Send className="w-4 h-4" />
             </Button>
           </div>
         </div>
+      </div>
+      <div className='text-center text-sm text-[#4e6e97] py-1'>
+        Usando o Gemini 2.5 Flash Lite
       </div>
     </div>
   )
