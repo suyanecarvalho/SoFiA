@@ -4,14 +4,13 @@ import { TooltipProvider } from '@/components/ui/tooltip.tsx'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Layout from '../src/components/Layout'
-import Home from '../src/pages/Home'
+import Home from './pages/Home'
 import Chat from '../src/pages/Chat'
-import Dashboard from '../src/pages/Dashboard'
-import Settings from '../src/pages/Settings'
-import Profile from '../src/pages/Profile'
+import Setting from './pages/Settings'
 import NotFound from '../src/pages/NotFound'
 import { useAuthCheck } from '@/features/auth/hooks/useAuthCheck'
 import { ModalLayer } from '@/components/ModalLayer.tsx'
+import { Settings } from 'lucide-react'
 
 const queryClient = new QueryClient()
 
@@ -25,12 +24,10 @@ const AppContent = () => {
       <BrowserRouter>
         <Layout>
           <Routes>
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/" element={<Home />} />
             <Route path="/chat" element={<Chat />} />
             <Route path="/chat/:sessionId" element={<Chat />} />
-            {/*<Route path="/dashboard" element={<Dashboard />} />*/}
-            <Route path="/settings" element={<Profile />} />
-            {/*<Route path="/profile" element={<Profile />} />*/}
+            <Route path="/settings" element={<Setting />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Layout>

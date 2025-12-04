@@ -45,4 +45,11 @@ export const analyticsService = {
     )
     return data
   },
+
+  async getAllTransactions(): Promise<Transaction[]> {
+    const { data } = await apiClient.get<Transaction[]>(
+      `/api/v1/transactions`
+    )
+    return data
+  }
 }
