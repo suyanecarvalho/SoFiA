@@ -9,7 +9,7 @@ from sqlalchemy import (
     Enum as SQLAlchemyEnum,
     CheckConstraint,
     JSON,
-    text,
+    text, Date,
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -45,6 +45,7 @@ class Transaction(Base):
     id = Column(Integer, primary_key=True, index=True)
     amount = Column(Integer, nullable=False)
     description = Column(Text, nullable=False)
+    reference_date = Column(Date, nullable=False, default=func.current_date(), index=True)
     transaction_type = Column(
         SQLAlchemyEnum(
             TransactionType,

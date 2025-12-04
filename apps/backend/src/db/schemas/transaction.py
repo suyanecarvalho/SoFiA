@@ -11,6 +11,7 @@ class TransactionCore(BaseModel):
         Field(gt=0, description="The transaction amount in cents (always positive)"),
     ]
     description: str
+    reference_date: Optional[datetime.date] = None
 
 
 class ExpenseCreate(TransactionCore):
@@ -33,8 +34,8 @@ TransactionCreate = Annotated[
 class Transaction(TransactionCore):
     id: int
     transaction_type: TransactionType
+    reference_date: datetime.date
     category_id: Optional[int] = None
-    is_superfluous: Optional[bool] = None
     user_id: int
     created_at: Optional[datetime.datetime]
     updated_at: Optional[datetime.datetime]

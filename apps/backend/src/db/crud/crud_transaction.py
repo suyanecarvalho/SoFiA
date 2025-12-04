@@ -14,22 +14,22 @@ def get_transaction(db: Session, transaction_id: int):
 
 
 def get_transactions(
-    db: Session,
-    skip: int = 0,
-    limit: int = 100,
-    date_from: Optional[datetime.date] = None,
-    date_to: Optional[datetime.date] = None,
-    category_id: Optional[int] = None,
-    is_superfluous: Optional[bool] = None,
-    transaction_type: Optional[str] = None,
+        db: Session,
+        skip: int = 0,
+        limit: int = 100,
+        date_from: Optional[datetime.date] = None,
+        date_to: Optional[datetime.date] = None,
+        category_id: Optional[int] = None,
+        is_superfluous: Optional[bool] = None,
+        transaction_type: Optional[str] = None,
 ):
-    query = db.query(models.Transaction).order_by(models.Transaction.created_at.desc())
+    query = db.query(models.Transaction).order_by(
+        models.Transaction.reference_date.desc()
+    )
     if date_from:
-        query = query.filter(models.Transaction.created_at >= date_from)
+        query = query.filter(models.Transaction.reference_date >= date_from)
     if date_to:
-        query = query.filter(
-            models.Transaction.created_at < (date_to + datetime.timedelta(days=1))
-        )
+        query = query.filter(models.Transaction.reference_date <= date_to)
     if category_id is not None:
         query = query.filter(models.Transaction.category_id == category_id)
     if is_superfluous is not None:
@@ -41,10 +41,12 @@ def get_transactions(
 
 
 def create_transaction(
-    db: Session, transaction: transaction_schema.TransactionCreate, user_id: int
+        db: Session, transaction: transaction_schema.TransactionCreate, user_id: int
 ) -> models.Transaction:
     db_data = transaction.model_dump(exclude_unset=True)
     db_data["user_id"] = user_id
+    if not db_data.get("reference_date"):
+        db_data["reference_date"] = datetime.date.today()
     db_transaction = models.Transaction(**db_data)
     db.add(db_transaction)
     db.flush()

@@ -22,10 +22,6 @@ class AnalyticsService:
         return start_date, end_date
 
     def get_summary_cards(self, month: Optional[int] = None, year: Optional[int] = None) -> schemas.DashboardSummary:
-        """
-        Calculates totals for Selected Month vs Previous Month.
-        Defaults to current month if arguments are missing.
-        """
         today = datetime.date.today()
         target_month = month or today.month
         target_year = year or today.year
@@ -33,26 +29,22 @@ class AnalyticsService:
         first_of_curr = datetime.date(target_year, target_month, 1)
         last_month_date = first_of_curr - datetime.timedelta(days=1)
         prev_start, prev_end = self._get_month_range(last_month_date.year, last_month_date.month)
+
         def get_sum(start, end, tx_type):
             return self.db.query(func.sum(Transaction.amount)).filter(
                 Transaction.user_id == self.user_id,
-                Transaction.created_at >= start,
-                Transaction.created_at <= end,
+                Transaction.reference_date >= start,
+                Transaction.reference_date <= end,
                 Transaction.transaction_type == tx_type
             ).scalar() or 0
+
         curr_income = get_sum(curr_start, curr_end, TransactionType.INCOME)
         curr_expense = get_sum(curr_start, curr_end, TransactionType.EXPENSE)
         prev_income = get_sum(prev_start, prev_end, TransactionType.INCOME)
         prev_expense = get_sum(prev_start, prev_end, TransactionType.EXPENSE)
-        
-        # Get user salary to include in current month income
         user = self.db.query(User).filter(User.id == self.user_id).first()
-        # Convert salary from reais to centavos (multiply by 100) to match transaction amounts
         user_salary = (user.salary * 100) if user and user.salary else 0
-        
-        # Add salary to current month income
         curr_income_with_salary = curr_income + user_salary
-        
         curr_savings = curr_income_with_salary - curr_expense
         prev_savings = prev_income - prev_expense
         total_income_lifetime = self.db.query(func.sum(Transaction.amount)).filter(
@@ -63,13 +55,12 @@ class AnalyticsService:
             Transaction.user_id == self.user_id,
             Transaction.transaction_type == TransactionType.EXPENSE
         ).scalar() or 0
-        
-        # Add salary to total balance
         total_balance = total_income_lifetime - total_expense_lifetime + user_salary
         def calc_change(curr, prev):
             if prev == 0:
                 return 100.0 if curr > 0 else 0.0
             return ((curr - prev) / prev) * 100
+
         return schemas.DashboardSummary(
             total_balance=total_balance,
             total_income=curr_income_with_salary,
@@ -81,14 +72,10 @@ class AnalyticsService:
         )
 
     def get_spending_by_category(self, month: Optional[int] = None, year: Optional[int] = None) -> list[schemas.CategorySpending]:
-        """
-        Returns expense breakdown for the SELECTED month.
-        """
         today = datetime.date.today()
         target_month = month or today.month
         target_year = year or today.year
         start_date, end_date = self._get_month_range(target_year, target_month)
-
         results = (
             self.db.query(
                 Category.name,
@@ -98,8 +85,8 @@ class AnalyticsService:
             .filter(
                 Transaction.user_id == self.user_id,
                 Transaction.transaction_type == TransactionType.EXPENSE,
-                Transaction.created_at >= start_date,
-                Transaction.created_at <= end_date
+                Transaction.reference_date >= start_date,
+                Transaction.reference_date <= end_date
             )
             .group_by(Category.name)
             .all()
@@ -117,21 +104,17 @@ class AnalyticsService:
         return sorted(data, key=lambda x: x.amount, reverse=True)
 
     def get_monthly_evolution(self, months: int = 6) -> list[schemas.MonthlyEvolution]:
-        """
-        Returns Income vs Expense bars for the last N months.
-        """
         end_date = datetime.date.today()
-        start_date = (end_date.replace(day=1) - datetime.timedelta(days=30 * months))
-
+        start_date = (end_date.replace(day=1) - datetime.timedelta(days=30 * months)).replace(day=1)
         query = (
             self.db.query(
-                func.strftime("%Y-%m", Transaction.created_at).label("month_str"),
+                func.strftime("%Y-%m", Transaction.reference_date).label("month_str"),
                 func.sum(case((Transaction.transaction_type == TransactionType.INCOME, Transaction.amount), else_=0)).label("income"),
                 func.sum(case((Transaction.transaction_type == TransactionType.EXPENSE, Transaction.amount), else_=0)).label("expense"),
             )
             .filter(
                 Transaction.user_id == self.user_id,
-                Transaction.created_at >= start_date
+                Transaction.reference_date >= start_date
             )
             .group_by("month_str")
             .order_by("month_str")

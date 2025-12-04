@@ -23,7 +23,12 @@ class ExpenseTool(BaseTool):
                 "amount": {"type": "integer", "description": "Amount in CENTS"},
                 "description": {"type": "string"},
                 "category_name": {"type": "string", "enum": categories},
-                "is_superfluous": {"type": "boolean"}
+                "is_superfluous": {"type": "boolean"},
+                "reference_date": {
+                    "type": "string",
+                    "format": "date",
+                    "description": "YYYY-MM-DD. Use 1st of month if day unknown."
+                }
             },
             "required": ["amount", "description", "category_name"]
         }
@@ -32,8 +37,11 @@ class ExpenseTool(BaseTool):
         categories = self.service.get_all_category_names()
         cat_list = "\n".join(f"  - {cat}" for cat in categories)
         partial_str = f"\nPrevious data: {json.dumps(partial)}" if partial else ""
+        today_str = datetime.now().strftime("%Y-%m-%d")
 
-        return f"""Extract EXPENSE data. User: "{message}"{partial_str}
+        return f"""Extract EXPENSE data. 
+        TODAY: {today_str}
+        User: "{message}"{partial_str}
 
         AVAILABLE CATEGORIES:
         {cat_list}
@@ -42,6 +50,10 @@ class ExpenseTool(BaseTool):
         - amount (int cents)
         - description (string)
         - category_name (exact match)
+        - reference_date (YYYY-MM-DD): 
+          If user says "last month", calculate based on TODAY.
+          If user says "January", assume 1st of January (YYYY-01-01).
+          If omitted, DO NOT output this key (system defaults to today).
         
         Extract known fields. Omit unknown. No JSON markdown.
         """
@@ -59,8 +71,9 @@ class ExpenseTool(BaseTool):
         adapter = TypeAdapter(transaction_schema.TransactionCreate)
         validated_data = adapter.validate_python(params)
         tx = self.service.create_transaction(user_id=user_id, transaction_data=validated_data)
+        date_str = tx.reference_date.strftime("%B %Y")
         return (
-            f"Expense created: {tx.description} (R$ {tx.amount / 100:.2f})",
+            f"Expense created: {tx.description} (R$ {tx.amount / 100:.2f}) in {date_str}",
             f"Created Expense: {tx.description}"
         )
 
@@ -77,14 +90,28 @@ class IncomeTool(BaseTool):
             "properties": {
                 "amount": {"type": "integer"},
                 "description": {"type": "string"},
+                "reference_date": {
+                    "type": "string",
+                    "format": "date",
+                    "description": "YYYY-MM-DD. Use 1st of month if day unknown."
+                }
             },
             "required": ["amount", "description"]
         }
 
     def get_extraction_prompt(self, message: str, partial: Optional[Dict[str, Any]] = None) -> str:
         partial_str = f"\nPrevious data: {json.dumps(partial)}" if partial else ""
-        return f"""Extract INCOME data. User: "{message}"{partial_str}
-        Schema: amount (int cents), description (string).
+        today_str = datetime.now().strftime("%Y-%m-%d")
+
+        return f"""Extract INCOME data. 
+        TODAY: {today_str}
+        User: "{message}"{partial_str}
+        
+        Schema: 
+        - amount (int cents)
+        - description (string)
+        - reference_date (YYYY-MM-DD): Handle relative dates (last month -> 1st of previous month).
+        
         Extract known fields. Omit unknown. No JSON markdown."""
 
     def execute(self, params: Dict[str, Any], user_id: int) -> Tuple[str, str]:
@@ -95,8 +122,10 @@ class IncomeTool(BaseTool):
         adapter = TypeAdapter(transaction_schema.TransactionCreate)
         validated_data = adapter.validate_python(params)
         tx = self.service.create_transaction(user_id=user_id, transaction_data=validated_data)
+
+        date_str = tx.reference_date.strftime("%B %Y")
         return (
-            f"Income created: {tx.description} (R$ {tx.amount / 100:.2f})",
+            f"Income created: {tx.description} (R$ {tx.amount / 100:.2f}) in {date_str}",
             f"Created Income: {tx.description}"
         )
 
@@ -127,9 +156,6 @@ class QueryTool(BaseTool):
         }
 
     def get_extraction_prompt(self, message: str, partial: Optional[Dict[str, Any]] = None) -> str:
-        """
-        Instructs LLM to convert natural language time and categories into filters.
-        """
         today = datetime.now().strftime("%Y-%m-%d")
         categories = self.service.get_all_category_names()
         cat_list = "\n".join(f"  - {cat}" for cat in categories)
@@ -146,15 +172,15 @@ class QueryTool(BaseTool):
         YOUR TASK: Convert natural language requirements into JSON filters.
 
         FIELDS:
-        - start_date (YYYY-MM-DD): derived from "this month", "last week".
-        - end_date (YYYY-MM-DD): derived from "until now", "yesterday".
+        - start_date (YYYY-MM-DD): derived from "this month", "last week", "in January".
+        - end_date (YYYY-MM-DD): derived from "until now", "yesterday", end of month.
         - category_name (string): MUST be one of the available categories.
         - is_superfluous (boolean): true if user asks for "unnecessary" money.
         - transaction_type (string): 'expense' or 'income' if specified.
 
         EXAMPLES:
-        "How much spent on Food this month?" -> {{"start_date": "2024-05-01", "end_date": "2024-05-15", "category_name": "Alimentação", "transaction_type": "expense"}}
-        "Show superfluous expenses" -> {{"is_superfluous": true, "transaction_type": "expense"}}
+        "How much spent on Food this month?" -> {{"start_date": "2024-05-01", "end_date": "2024-05-31", "category_name": "Alimentação", "transaction_type": "expense"}}
+        "Total spent in January" -> {{"start_date": "2024-01-01", "end_date": "2024-01-31", "transaction_type": "expense"}}
 
         OUTPUT VALID JSON ONLY. Omit keys if not mentioned.
         """
@@ -188,6 +214,6 @@ class QueryTool(BaseTool):
         total = sum(t.amount for t in results)
         summary_lines = []
         for tx in results:
-            summary_lines.append(f"- {tx.created_at.strftime('%d/%m')}: {tx.description} (R$ {tx.amount / 100:.2f})")
+            summary_lines.append(f"- {tx.reference_date.strftime('%d/%m')}: {tx.description} (R$ {tx.amount / 100:.2f})")
         full_text = f"Found {len(results)} transactions. Total: R$ {total/100:.2f}.\nDetails:\n" + "\n".join(summary_lines)
         return full_text, f"Query ({len(results)} results)"
