@@ -11,13 +11,26 @@ interface ChatMessageListProps {
 export function ChatMessageList({ messages, isTyping }: ChatMessageListProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const lastMessageRef = useRef<HTMLDivElement | null>(null)
+
+
   const displayMessages = useMemo(() => {
-    return [...messages].sort((a, b) => {
-      const dateA = new Date(a.created_at).getTime() || a.id
-      const dateB = new Date(b.created_at).getTime() || b.id
-      return dateA - dateB
-    })
+    const msgs = messages ? [...messages] : []
+
+    // Se não existir createdAt, tentamos ordenar por id numérico
+    const safeGetTime = (m: any) => {
+      if (m.createdAt) {
+        const t = new Date(m.createdAt).getTime()
+        return Number.isFinite(t) ? t : 0
+      }
+      // fallback: se id for número
+      if (typeof m.id === 'number') return m.id
+      // fallback final
+      return 0
+    }
+
+    return msgs.sort((a, b) => safeGetTime(a) - safeGetTime(b))
   }, [messages])
+
   useEffect(() => {
     if (lastMessageRef.current) {
       lastMessageRef.current.scrollIntoView({
