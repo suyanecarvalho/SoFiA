@@ -10,8 +10,8 @@ import Dashboard from '../src/pages/Dashboard'
 import Settings from '../src/pages/Settings'
 import Profile from '../src/pages/Profile'
 import NotFound from '../src/pages/NotFound'
-import { ModalLayer } from '@/components/ModalLayer'
 import { useAuthCheck } from '@/features/auth/hooks/useAuthCheck'
+import { ModalLayer } from '@/components/ModalLayer.tsx'
 
 const queryClient = new QueryClient()
 
@@ -25,10 +25,10 @@ const AppContent = () => {
       <BrowserRouter>
         <Layout>
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<Dashboard />} />
             <Route path="/chat" element={<Chat />} />
             <Route path="/chat/:sessionId" element={<Chat />} />
-            <Route path="/dashboard" element={<Dashboard />} />
+            {/*<Route path="/dashboard" element={<Dashboard />} />*/}
             <Route path="/settings" element={<Settings />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="*" element={<NotFound />} />

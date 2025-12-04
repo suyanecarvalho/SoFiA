@@ -73,12 +73,9 @@ export interface CreateIncomeRequest {
   is_superfluous?: null
 }
 
-export type CreateTransactionRequest =
-  | CreateExpenseRequest
-  | CreateIncomeRequest
 
-export type ChatRole = 'user' | 'assistant' | 'system'
-export type ModelPreference = 'local' | 'remote' | 'dummy'
+export type ChatRole = 'user' | 'assistant'
+export type ModelPreference = 'remote' | 'dummy'
 
 export interface Message {
   id: number

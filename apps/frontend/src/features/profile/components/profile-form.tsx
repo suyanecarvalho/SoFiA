@@ -69,7 +69,7 @@ export function ProfileForm({
           <div className="space-y-2">
             <Label htmlFor="api_key" className="flex items-center gap-2">
               <Key className="w-4 h-4" />
-              Chave de API (Opcional)
+              Chave de API do Gemini
             </Label>
             <Input
               id="api_key"
@@ -78,9 +78,6 @@ export function ProfileForm({
               {...register('api_key')}
               disabled={isPending}
             />
-            <p className="text-xs text-muted-foreground">
-              Usada para integrações avançadas com modelos externos.
-            </p>
           </div>
         </div>
 

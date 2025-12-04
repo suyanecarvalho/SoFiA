@@ -2,6 +2,7 @@ from typing import Generator, List
 from fastapi import Depends
 from sqlalchemy.orm import Session
 from src.db.database.connection import SessionLocal
+from src.services.analytics_service import AnalyticsService
 from src.services.chat_service import ChatService
 from src.services.transaction_service import TransactionService
 from src.tools.base import BaseTool
@@ -18,8 +19,7 @@ def get_transaction_service(db: Session = Depends(get_db)) -> TransactionService
     return TransactionService(db)
 
 def get_tools(
-    db: Session = Depends(get_db),
-    transaction_service: TransactionService = Depends(get_transaction_service)
+        transaction_service: TransactionService = Depends(get_transaction_service)
 ) -> List[BaseTool]:
     """
     Registry of all available tools.
@@ -36,3 +36,6 @@ def get_chat_service(
     tools: List[BaseTool] = Depends(get_tools)
 ) -> ChatService:
     return ChatService(db=db, tools=tools)
+
+def get_analytics_service(db: Session = Depends(get_db)) -> AnalyticsService:
+    return AnalyticsService(db)

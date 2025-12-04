@@ -13,7 +13,7 @@ class RemoteLLM(LLMInterface):
     """
 
     def __init__(
-            self, api_key: str, model_name: str = "gemini-3-pro-preview",
+            self, api_key: str, model_name: str = "gemini-2.5-flash-lite",
     ):
         self.api_key = api_key
         self.model_name = model_name

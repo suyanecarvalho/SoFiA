@@ -12,7 +12,6 @@ export function useCreateUser() {
     onSuccess: (user) => {
       setUser(user)
       queryClient.setQueryData(['me'], user)
-      queryClient.invalidateQueries({ queryKey: ['me'] })
     },
   })
 }
@@ -28,7 +27,6 @@ export function useUpdateUser() {
     onSuccess: (updatedUser) => {
       setUser(updatedUser)
       queryClient.setQueryData(['me'], updatedUser)
-      queryClient.invalidateQueries({ queryKey: ['me'] })
     },
   })
 }
