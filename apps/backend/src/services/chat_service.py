@@ -115,9 +115,13 @@ class ChatService:
                         del cleaned["category_name"]
         return cleaned
 
-    def _check_missing_fields(self, params: dict[str, object], schema: dict) -> list[str]:
-        """Checks which required fields are still missing."""
-        required = schema.get("required", [])
+    def _check_missing_fields(self, params: dict[str, object], tool: BaseTool) -> list[str]:
+        """
+        Checks which required fields are still missing.
+        Uses tool.required_fields (business logic) if available,
+        otherwise falls back to schema 'required' (LLM strictness).
+        """
+        required = getattr(tool, "required_fields", tool.schema.get("required", []))
         missing = []
         for field in required:
             val = params.get(field)
@@ -137,8 +141,12 @@ class ChatService:
     def _generate_response_with_context(self, session_id: int, system_context: str) -> str:
         history = crud_chat.get_history(self.db, session_id, limit=10)
         current_date = datetime.now().strftime("%Y-%m-%d (%A)")
-        system_message = f"""Today is {current_date}. You are SoFiA. Speak Portuguese. {system_context}"""
-
+        system_message = (
+            f"Current Date: {current_date}. "
+            "You are SoFiA, a personal finance assistant. "
+            "Speak Portuguese (Brazil). "
+            f"IMPORTANT CONTEXT FROM DATABASE/SYSTEM: {system_context}"
+        )
         messages = [LLMMessage(role="system", content=system_message)]
         messages.extend([LLMMessage(role=m.role.value, content=m.content) for m in history])
 
@@ -161,7 +169,7 @@ class ChatService:
             if self._detect_cancellation(message):
                 crud_chat.clear_session_state(self.db, session_id)
                 self.db.flush()
-                return self._generate_response_with_context(session_id, "System: User canceled."), None
+                return self._generate_response_with_context(session_id, "System: User canceled operation."), None
 
             intent = UserIntent(pending_tool)
             tool = self.tools[intent.value]
@@ -174,18 +182,27 @@ class ChatService:
             final_params = self._validate_and_clean_params(intent, merged_params)
             logger.info(f"🧹 Params after Validation: {json.dumps(final_params, ensure_ascii=False)}")
             was_category_rejected = "category_name" in merged_params and "category_name" not in final_params
-            missing_fields = self._check_missing_fields(final_params, tool.schema)
+            missing_fields = self._check_missing_fields(final_params, tool)
             if was_category_rejected:
                 logger.warning("⚠️ Category was rejected during validation. Forcing user to re-select.")
-                missing_fields.append("category_name")
-
+                if "category_name" not in missing_fields:
+                    missing_fields.append("category_name")
             if not missing_fields:
                 logger.info(f"✅ All fields collected! Executing {intent.value}")
                 description, action_type = self._execute_tool(intent, final_params)
                 crud_chat.clear_session_state(self.db, session_id)
                 self.db.flush()
+                if intent == UserIntent.QUERY:
+                    sys_ctx = (
+                        f"System: The database query returned: '{description}'. "
+                        "Answer the user's question based strictly on these findings. "
+                    )
+                else:
+                    sys_ctx = (
+                        f"System: SUCCESS. The transaction has been REGISTERED in the database: '{description}'. "
+                        "Inform the user it is done. Do NOT ask for confirmation."
+                    )
 
-                sys_ctx = f"System: Result: {description}. " + ("Summarize results." if intent == UserIntent.QUERY else "Confirm transaction.")
                 return self._generate_response_with_context(session_id, sys_ctx), action_type
             else:
                 crud_chat.update_session_state(
@@ -209,16 +226,31 @@ class ChatService:
             logger.info(f"🧹 Params after Validation: {json.dumps(final_params, ensure_ascii=False)}")
 
             was_category_rejected = "category_name" in raw_params and "category_name" not in final_params
-            missing_fields = self._check_missing_fields(final_params, tool.schema)
+
+            # UPDATED: Pass 'tool' instead of 'tool.schema'
+            missing_fields = self._check_missing_fields(final_params, tool)
 
             if was_category_rejected:
                 logger.warning("⚠️ Category was rejected during validation. Forcing user to re-select.")
-                missing_fields.append("category_name")
+                if "category_name" not in missing_fields:
+                    missing_fields.append("category_name")
 
             if not missing_fields:
                 logger.info(f"✅ Complete! Executing {intent.value}")
                 description, action_type = self._execute_tool(intent, final_params)
-                sys_ctx = f"System: Result: {description}. " + ("Summarize results." if intent == UserIntent.QUERY else "Confirm transaction.")
+
+                if intent == UserIntent.QUERY:
+                    sys_ctx = (
+                        f"System: The database query returned: '{description}'. "
+                        "Answer the user's question based strictly on these findings. "
+                        "Do NOT ask for dates or categories again, the search is done."
+                    )
+                else:
+                    sys_ctx = (
+                        f"System: SUCCESS. The transaction has been REGISTERED in the database: '{description}'. "
+                        "Inform the user it is done. Do NOT ask for confirmation."
+                    )
+
                 return self._generate_response_with_context(session_id, sys_ctx), action_type
             else:
                 logger.info(f"🚀 STARTING {intent.value} flow - missing {missing_fields}")
@@ -234,6 +266,7 @@ class ChatService:
 
     def _generate_follow_up_question(self, session_id: int, intent: UserIntent, current_params: dict, missing: list[str]) -> str:
         first_missing = missing[0]
+        params_str = json.dumps(current_params, ensure_ascii=False)
 
         if first_missing == 'category_name' and intent in [UserIntent.EXPENSE, UserIntent.QUERY]:
             tool = self.tools[intent.value]
@@ -241,11 +274,18 @@ class ChatService:
             category_list_str = "\n".join(f"- {cat}" for cat in all_categories)
 
             system_context = f"""System: The user tried to specify a category that doesn't exist.
+            We successfully extracted: {params_str}.
             Ask them to pick from this EXACT list:
             {category_list_str}
             """
         else:
-            system_context = f"System: User creating {intent.value}. Missing: {first_missing}. Ask for it."
+            system_context = (
+                f"System: User is creating a '{intent.value}'. "
+                f"We currently have these parameters: {params_str}. "
+                f"The following field is MISSING and required: '{first_missing}'. "
+                "Ask the user for this specific missing information."
+            )
+        # ------------------------------------------------
 
         return self._generate_response_with_context(session_id, system_context)
 

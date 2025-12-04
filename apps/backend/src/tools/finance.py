@@ -1,6 +1,8 @@
+# /home/yordle/IdeaProjects/SoFiA/apps/backend/src/tools/finance.py
+
 import json
 from datetime import datetime
-from typing import Dict, Any, Tuple, Optional
+from typing import Dict, Any, Tuple, Optional, List
 from pydantic import TypeAdapter
 from src.core.logger import logger
 from src.services.transaction_service import TransactionService
@@ -29,32 +31,35 @@ class ExpenseTool(BaseTool):
                     "description": "YYYY-MM-DD. Use 1st of month if day unknown."
                 }
             },
-            "required": ["amount", "description", "category_name"]
+            "required": ["amount", "description"]
         }
+
+    @property
+    def required_fields(self) -> List[str]:
+        return ["amount", "description", "category_name"]
 
     def get_extraction_prompt(self, message: str, partial: Optional[Dict[str, Any]] = None) -> str:
         categories = self.service.get_all_category_names()
         cat_list = "\n".join(f"  - {cat}" for cat in categories)
-        partial_str = f"\nPrevious data: {json.dumps(partial)}" if partial else ""
+        partial_json = json.dumps(partial) if partial else "{}"
         today_str = datetime.now().strftime("%Y-%m-%d")
-
-        return f"""Extract EXPENSE data. 
+        return f"""You are a strict data extraction engine.
         TODAY: {today_str}
-        User: "{message}"{partial_str}
-
+        CURRENT DATA (Merge with this): {partial_json}
+        USER MESSAGE: "{message}"
         AVAILABLE CATEGORIES:
         {cat_list}
+        RULES:
+        1. Extract 'amount' in CENTS (multiply by 100). E.g., "60 reais" -> 6000.
+        2. Extract 'description' if stated.
+        3. DATE RULE: Extract 'reference_date' (YYYY-MM-DD) based on the user's text relative to TODAY. 
+           - E.g. "mês passado" (last month), "ontem" (yesterday), "dia 5" (day 5 of current month).
+           - If no date is mentioned, omit 'reference_date'.
+        4. CATEGORY RULE: ONLY output 'category_name' if the user EXPLICITLY mentions keywords related to a category (e.g., "lunch"->Alimentação, "uber"->Transporte). 
+           - IF THE USER IS VAGUE (e.g., "bought something", "spent money"), DO NOT GUESS. Omit 'category_name'.
+           - It is BETTER to omit the category than to guess wrong.
 
-        Schema:
-        - amount (int cents)
-        - description (string)
-        - category_name (exact match)
-        - reference_date (YYYY-MM-DD): 
-          If user says "last month", calculate based on TODAY.
-          If user says "January", assume 1st of January (YYYY-01-01).
-          If omitted, DO NOT output this key (system defaults to today).
-        
-        Extract known fields. Omit unknown. No JSON markdown.
+        Output JSON only.
         """
 
     def execute(self, params: Dict[str, Any], user_id: int) -> Tuple[str, str]:
@@ -98,18 +103,23 @@ class IncomeTool(BaseTool):
             "required": ["amount", "description"]
         }
 
+    @property
+    def required_fields(self) -> List[str]:
+        return ["amount", "description"]
+
     def get_extraction_prompt(self, message: str, partial: Optional[Dict[str, Any]] = None) -> str:
-        partial_str = f"\nPrevious data: {json.dumps(partial)}" if partial else ""
+        partial_json = json.dumps(partial) if partial else "{}"
         today_str = datetime.now().strftime("%Y-%m-%d")
 
         return f"""Extract INCOME data. 
         TODAY: {today_str}
-        User: "{message}"{partial_str}
+        CURRENT DATA: {partial_json}
+        User: "{message}"
         
         Schema: 
-        - amount (int cents)
+        - amount (int cents). Convert "60 reais" -> 6000.
         - description (string)
-        - reference_date (YYYY-MM-DD): Handle relative dates (last month -> 1st of previous month).
+        - reference_date (YYYY-MM-DD): Handle relative dates.
         
         Extract known fields. Omit unknown. No JSON markdown."""
 
@@ -152,16 +162,20 @@ class QueryTool(BaseTool):
             "required": []
         }
 
+    @property
+    def required_fields(self) -> List[str]:
+        return []
+
     def get_extraction_prompt(self, message: str, partial: Optional[Dict[str, Any]] = None) -> str:
         today = datetime.now().strftime("%Y-%m-%d")
         categories = self.service.get_all_category_names()
         cat_list = "\n".join(f"  - {cat}" for cat in categories)
-        partial_str = f"\nPrevious data: {json.dumps(partial)}" if partial else ""
+        partial_json = json.dumps(partial) if partial else "{}"
 
         return f"""You are a query parser for a finance DB.
         TODAY IS: {today}
-
-        USER QUERY: "{message}"{partial_str}
+        CURRENT FILTERS: {partial_json}
+        USER QUERY: "{message}"
 
         AVAILABLE CATEGORIES (Exact match required):
         {cat_list}
@@ -171,7 +185,7 @@ class QueryTool(BaseTool):
         FIELDS:
         - start_date (YYYY-MM-DD): derived from "this month", "last week", "in January".
         - end_date (YYYY-MM-DD): derived from "until now", "yesterday", end of month.
-        - category_name (string): MUST be one of the available categories.
+        - category_name (string): MUST be one of the available categories. Only set if explicitly requested.
         - transaction_type (string): 'expense' or 'income' if specified.
 
         EXAMPLES:
@@ -206,9 +220,14 @@ class QueryTool(BaseTool):
         results = self.service.get_transactions(filters=filters)
         if not results:
             return "No transactions found matching those criteria.", "Query (0 results)"
-        total = sum(t.amount for t in results)
+        total_cents = sum(t.amount for t in results)
+        total_reais = total_cents / 100.0
         summary_lines = []
         for tx in results:
             summary_lines.append(f"- {tx.reference_date.strftime('%d/%m')}: {tx.description} (R$ {tx.amount / 100:.2f})")
-        full_text = f"Found {len(results)} transactions. Total: R$ {total/100:.2f}.\nDetails:\n" + "\n".join(summary_lines)
+        full_text = (
+                f"Found {len(results)} transactions. "
+                f"Total Sum: R$ {total_reais:.2f} (exact value: {total_reais} BRL).\n"
+                f"Details:\n" + "\n".join(summary_lines)
+        )
         return full_text, f"Query ({len(results)} results)"

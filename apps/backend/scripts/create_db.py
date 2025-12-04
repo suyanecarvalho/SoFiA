@@ -16,12 +16,11 @@ INITIAL_CATEGORIES = [
     {"id": 4, "name": "Tecnologia"},
     {"id": 5, "name": "Viagem"},
     {"id": 6, "name": "Pets"},
-    {"id": 7, "name": "Outros"},
-    {"id": 8, "name": "Alimentação"},
-    {"id": 9, "name": "Casa"},
-    {"id": 10, "name": "Educação"},
-    {"id": 11, "name": "Saúde"},
-    {"id": 12, "name": "Despesas Pessoais"},
+    {"id": 7, "name": "Alimentação"},
+    {"id": 8, "name": "Casa"},
+    {"id": 9, "name": "Educação"},
+    {"id": 10, "name": "Saúde"},
+    {"id": 11, "name": "Despesas Pessoais"},
 ]
 
 
