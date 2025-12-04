@@ -16,7 +16,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       )}>
         <div className="p-3 flex items-center justify-between border-b border-sidebar-border">
           {!isCollapsed && (
-            <span className="text-sm text-sidebar-foreground opacity-50">Chat</span>
+            <span className="text-lg font-bold text-sidebar-foreground">SofIA</span>
           )}
           <Button
             variant="ghost"
@@ -66,7 +66,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             {!isCollapsed && "Chat"}
           </NavLink>
           
-          <NavLink
+          {/*<NavLink
             to="/dashboard"
             className={({ isActive }) =>
               cn(
@@ -81,7 +81,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           >
             <LayoutDashboard className="w-5 h-5" />
             {!isCollapsed && "Dashboard"}
-          </NavLink>
+          </NavLink>*/}
         </nav>
 
         <div className="p-3 space-y-1 border-t border-sidebar-border">
