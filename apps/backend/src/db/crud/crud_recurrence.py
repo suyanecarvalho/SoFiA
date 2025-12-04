@@ -1,8 +1,9 @@
 import datetime
+from typing import Any
 
 from sqlalchemy.orm import Session
 from src.db.models import models
-from src.db.models.models import Transaction
+from src.db.models.models import Transaction, RecurrentTransaction
 from src.db.schemas import recurrent as recurrent_schema
 from src.utils.enums import RecurrenceFrequency
 
@@ -14,12 +15,6 @@ def create_recurrence(
 ) -> models.RecurrentTransaction:
     """
     Create a recurrence rule.
-
-    Args:
-        db: Database session
-        recurrence: Recurrence schema
-        user_id: ID of the user
-        commit: Whether to commit immediately (default True)
     """
     db_recurrence = models.RecurrentTransaction(
         user_id=user_id,
@@ -38,6 +33,15 @@ def create_recurrence(
         db.refresh(db_recurrence)
 
     return db_recurrence
+
+def get_recurrence(db: Session, recurrence_id: int, user_id: int) -> type[RecurrentTransaction] | Any:
+    """
+    Get a specific recurrence rule owned by the user.
+    """
+    return db.query(models.RecurrentTransaction).filter(
+        models.RecurrentTransaction.id == recurrence_id,
+        models.RecurrentTransaction.user_id == user_id
+    ).first()
 
 def get_active_recurrences(db: Session, frequency: RecurrenceFrequency = RecurrenceFrequency.MONTHLY):
     """
@@ -63,3 +67,13 @@ def get_recurrence_execution_for_period(
         models.Transaction.reference_date >= start_date,
         models.Transaction.reference_date <= end_date
     ).first()
+
+def get_user_recurrences(db: Session, user_id: int, skip: int = 0, limit: int = 100):
+    """
+    Get all recurrences for a user (active or inactive).
+    """
+    return db.query(models.RecurrentTransaction) \
+        .filter(models.RecurrentTransaction.user_id == user_id) \
+        .offset(skip) \
+        .limit(limit) \
+        .all()

@@ -11,31 +11,54 @@ export interface PaginatedResponse<T> {
   pages: number
 }
 
+export interface UserSalaryInfo {
+  amount: number
+  payday: number
+}
+
 export interface User {
   id: number
   name: string
   profile_pic: string | null
   api_key: string | null
-  salary: number | null
-  payday: number | null
   created_at: string | null
   updated_at: string | null
+  salary_recurrence_id: number | null
+  salary: UserSalaryInfo | null
 }
 
 export interface CreateUserRequest {
   name: string
   profile_pic?: string
   api_key?: string
-  salary?: number
-  payday?: number
 }
 
 export interface UpdateUserRequest {
   name?: string
   profile_pic?: string
   api_key?: string
-  salary?: number
-  payday?: number
+}
+
+export type RecurrenceFrequency = 'monthly' | 'weekly' | 'yearly'
+
+export interface RecurrenceInput {
+  amount: number
+  description: string
+  transaction_type: 'income' | 'expense'
+  frequency: RecurrenceFrequency
+  day: number
+  category_id?: number | null
+  active?: boolean
+}
+
+export interface RecurrenceUpdate {
+  amount?: number
+  description?: string
+  transaction_type?: 'income' | 'expense'
+  frequency?: RecurrenceFrequency
+  day?: number
+  category_id?: number | null
+  active?: boolean
 }
 
 export interface Category {
@@ -56,7 +79,7 @@ export interface Transaction {
   amount: number
   description: string
   transaction_type: TransactionType
-  category_id: number | null
+  category_id: number
   user_id: number
   created_at: string | null
   updated_at: string | null
@@ -75,7 +98,6 @@ export interface CreateIncomeRequest {
   transaction_type: 'income'
   category_id?: null
 }
-
 
 export type ChatRole = 'user' | 'assistant'
 export type ModelPreference = 'remote' | 'dummy'

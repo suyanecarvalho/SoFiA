@@ -16,10 +16,9 @@ export function RecentTransactionsList({ data, isLoading }: Props) {
     return <Skeleton className="h-[300px] w-full rounded-xl" />
   }
 
-  const getIcon = (categoryName: string, type: string) => {
+  const getIcon = (categoryId: number, type: string) => {
     if (type === 'income') return 'income'
-    const cat = categoryName.toLowerCase()
-    if (cat.includes('aliment')) return 'shopping'
+    if (categoryId === 1) return 'shopping'
     if (cat.includes('transport')) return 'transport'
     if (cat.includes('saúde') || cat.includes('saude')) return 'health'
     if (cat.includes('lazer')) return 'entertainment'
@@ -35,7 +34,7 @@ export function RecentTransactionsList({ data, isLoading }: Props) {
       key={t.id}
       icon={
         getIcon(
-          t.category_id ? 'expense' : 'Receita',
+          t.category_id,
           t.transaction_type
         ) as any
       }
@@ -44,7 +43,7 @@ export function RecentTransactionsList({ data, isLoading }: Props) {
         t.transaction_type === 'income' ? 'Receita' : 'Despesa'
       }
       amount={t.amount}
-      date={new Date(t.created_at || '').toLocaleDateString('pt-BR', {
+      date={new Date(t.reference_date || '').toLocaleDateString('pt-BR', {
         day: '2-digit',
         month: 'short',
       })}

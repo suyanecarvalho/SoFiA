@@ -1,17 +1,82 @@
 import datetime
 import calendar
+from typing import List, Any
+
 from sqlalchemy.orm import Session
-from src.db.crud import crud_recurrence, crud_user
+from src.db.crud import crud_recurrence, crud_user, crud_transaction
 from src.db.models import models
 from src.core.logger import logger
+from src.db.models.models import RecurrentTransaction
 from src.db.schemas import transaction as transaction_schema
+from src.db.schemas import recurrent as recurrent_schema
 from src.services.transaction_service import TransactionService
 
 class RecurrenceService:
     def __init__(self, db: Session):
         self.db = db
-        # We keep TransactionService here for the actual creation of the record
         self.transaction_service = TransactionService(db)
+
+    def create_recurrence_from_api(
+            self, user_id: int, input_data: recurrent_schema.RecurrenceInput
+    ) -> models.RecurrentTransaction:
+        """
+        Creates a base transaction AND the recurrence rule in one atomic operation.
+        """
+        tx_create_data = {
+            "amount": input_data.amount,
+            "description": input_data.description,
+            "reference_date": input_data.reference_date,
+            "transaction_type": input_data.transaction_type,
+            "category_id": input_data.category_id
+        }
+        if input_data.transaction_type == "expense":
+            tx_schema = transaction_schema.ExpenseCreate(**tx_create_data)
+        else:
+            tx_schema = transaction_schema.IncomeCreate(**tx_create_data)
+        base_tx = self.transaction_service.create_transaction(
+            user_id=user_id,
+            transaction_data=tx_schema,
+            check_salary_trigger=False
+        )
+        rec_create = recurrent_schema.RecurrentTransactionCreate(
+            base_transaction_id=base_tx.id,
+            recurrence_day=input_data.recurrence_day,
+            frequency=input_data.frequency
+        )
+        return crud_recurrence.create_recurrence(self.db, rec_create, user_id=user_id, commit=True)
+
+    def update_recurrence(
+            self, user_id: int, recurrence_id: int, update_data: recurrent_schema.RecurrenceUpdate
+    ) -> type[RecurrentTransaction] | None :
+        """
+        Updates recurrence settings AND/OR the underlying base transaction details.
+        """
+        recurrence = crud_recurrence.get_recurrence(self.db, recurrence_id, user_id)
+        if not recurrence:
+            return None
+        if update_data.recurrence_day is not None:
+            recurrence.recurrence_day = update_data.recurrence_day
+        if update_data.frequency is not None:
+            recurrence.frequency = update_data.frequency
+        if update_data.is_active is not None:
+            recurrence.is_active = update_data.is_active
+        base_tx = recurrence.base_transaction
+        if base_tx:
+            if update_data.amount is not None:
+                base_tx.amount = update_data.amount
+            if update_data.description is not None:
+                base_tx.description = update_data.description
+            if update_data.category_id is not None:
+                base_tx.category_id = update_data.category_id
+
+            self.db.add(base_tx)
+        self.db.add(recurrence)
+        self.db.commit()
+        self.db.refresh(recurrence)
+        return recurrence
+
+    def get_all_by_user(self, user_id: int, skip: int, limit: int) -> List[models.RecurrentTransaction]:
+        return crud_recurrence.get_user_recurrences(self.db, user_id, skip, limit)
 
     def process_daily_recurrences(self):
         """
@@ -41,12 +106,6 @@ class RecurrenceService:
         logger.info(f"Recurrence Check Complete. Generated {count} transactions.")
 
     def ensure_salary_for_month(self, user_id: int, reference_date: datetime.date):
-        """
-        Triggered when a user creates a transaction manually.
-        Checks if the User has a Salary Recurrence.
-        If yes, checks if it has been generated for the 'reference_date' month.
-        If not, generates it immediately.
-        """
         try:
             user = crud_user.get_user(self.db, user_id)
             if not user or not user.salary_recurrence_id:
@@ -74,9 +133,6 @@ class RecurrenceService:
             logger.error(f"Failed to ensure salary for month: {e}", exc_info=True)
 
     def _is_due(self, rule: models.RecurrentTransaction, today: datetime.date) -> bool:
-        """
-        Determines if the rule should run based on 'today'.
-        """
         last_day_of_month = calendar.monthrange(today.year, today.month)[1]
         target_day = min(rule.recurrence_day, last_day_of_month)
         if today.day < target_day:
@@ -91,10 +147,6 @@ class RecurrenceService:
         return True
 
     def _execute_recurrence(self, rule: models.RecurrentTransaction, tx_date: datetime.date):
-        """
-        Clones the base transaction and links it to the recurrence rule.
-        Accepts the specific date to execute on.
-        """
         base = rule.base_transaction
         if not base:
             logger.warning(f"Recurrence {rule.id} has no base transaction. Skipping.")
