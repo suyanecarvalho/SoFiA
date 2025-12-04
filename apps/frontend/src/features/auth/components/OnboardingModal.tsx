@@ -14,7 +14,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useUIStore } from '@/stores/uiStore'
 import { useCreateUser } from '@/features/chat/hooks/useUser'
-import { Key, User, DollarSign, Calendar } from 'lucide-react'
+import { Key, User, DollarSign, Calendar, Eye, EyeOff } from 'lucide-react'
+import { useState } from 'react'
 
 const formSchema = z.object({
   name: z.string().min(2, 'O nome deve ter pelo menos 2 caracteres'),
@@ -59,6 +60,9 @@ export function OnboardingModal() {
   const preventClose = (e: Event) => {
     e.preventDefault()
   }
+
+  const [show, setShow] = useState(false);
+
   return (
     <Dialog open={activeModal === 'onboarding'} onOpenChange={() => {}}>
       <DialogContent
@@ -139,12 +143,22 @@ export function OnboardingModal() {
               <Key className="w-4 h-4" />
               Chave de API do Gemini
             </Label>
-            <Input
-              id="api_key"
-              type="password"
-              placeholder="sk-..."
-              {...register('api_key')}
-            />
+            <div className='flex gap-2'>
+              <Input
+                id="api_key"
+                type={show ? 'text' : 'password'}
+                placeholder="sk-..."
+                {...register('api_key')}
+              />
+              <Button
+                type="button"
+                onClick={() => setShow(!show)}
+                className="bg-muted hover:bg-muted/80"
+                disabled={isPending}
+              >
+                {show ? <EyeOff className="w-4 h-4 text-muted-foreground" /> : <Eye className="w-4 h-4 text-muted-foreground" />}
+              </Button>
+            </div>
             <p className="text-xs text-muted-foreground">
               Você pode configurar isso mais tarde nos ajustes.
             </p>

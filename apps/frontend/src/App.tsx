@@ -29,8 +29,8 @@ const AppContent = () => {
             <Route path="/chat" element={<Chat />} />
             <Route path="/chat/:sessionId" element={<Chat />} />
             {/*<Route path="/dashboard" element={<Dashboard />} />*/}
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/profile" element={<Profile />} />
+            <Route path="/settings" element={<Profile />} />
+            {/*<Route path="/profile" element={<Profile />} />*/}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Layout>
