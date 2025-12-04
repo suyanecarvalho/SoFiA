@@ -57,9 +57,10 @@ def create_user(
 
     **Automatic Salary Setup**:
     - If `salary` and `payday` are provided:
-      1. Creates a salary transaction for the **previous month** (History).
+      1. Creates a salary transaction Template (Base Transaction).
       2. Creates a recurrence rule.
       3. Checks if the **current month's** salary is due and generates it if missing.
+         (Does NOT backfill previous months).
     """
     existing_user = crud_user.get_existing_user(db)
     if existing_user:
@@ -73,14 +74,10 @@ def create_user(
 
         if user.salary and user.payday:
             today = datetime.date.today()
-            safe_day = min(user.payday, 28)
-            first_of_curr_month = today.replace(day=1)
-            last_month_obj = first_of_curr_month - datetime.timedelta(days=1)
-            ref_date = datetime.date(last_month_obj.year, last_month_obj.month, safe_day)
             tx_create = transaction_schema.IncomeCreate(
                 amount=user.salary,
                 description="Salário Mensal",
-                reference_date=ref_date,
+                reference_date=today,
                 transaction_type=TransactionType.INCOME,
                 category_id=None
             )
