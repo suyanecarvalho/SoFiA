@@ -1,21 +1,33 @@
-import { NavLink } from "react-router-dom";
-import { Home, MessageSquare, LayoutDashboard, Settings, User, ChevronLeft, ChevronRight, Plus } from "lucide-react";
-import { useState } from "react";
-import { cn } from "../lib/utils";
-import { Button } from "../components/ui/button";
-import { useSessions } from "@/features/chat/hooks/useSessions";
+import { NavLink } from 'react-router-dom'
+import {
+  Home,
+  MessageSquare,
+  LayoutDashboard,
+  Settings,
+  User,
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+} from 'lucide-react'
+import { useState } from 'react'
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { useSessions } from '@/features/chat/hooks/useSessions'
+import { SessionTitle } from '@/features/chat/components/SessionTitle'
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const { data: sessions = [] } = useSessions();
+  const [isCollapsed, setIsCollapsed] = useState(false)
+  const { data: sessions = [] } = useSessions()
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
       {/* Sidebar */}
-      <aside className={cn(
-        "bg-[#4e6e97] flex flex-col transition-all duration-300" ,
-        isCollapsed ? "w-[70px]" : "w-[180px]"
-      )}>
+      <aside
+        className={cn(
+          'bg-[#4e6e97] flex flex-col transition-all duration-300',
+          isCollapsed ? 'w-[70px]' : 'w-[180px]'
+        )}
+      >
         <div className="p-3 flex items-center justify-between border-b border-sidebar-border">
           {!isCollapsed && (
             <span className="text-lg font-bold text-[#e6ebf2]">SofIA</span>
@@ -26,9 +38,9 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             onClick={() => setIsCollapsed(!isCollapsed)}
           >
             {isCollapsed ? (
-              <ChevronRight className="h-4 w-4 text-[#e6ebf2]"/>
+              <ChevronRight className="h-4 w-4 text-[#e6ebf2]" />
             ) : (
-              <ChevronLeft className="h-4 w-4 text-[#e6ebf2]"/>
+              <ChevronLeft className="h-4 w-4 text-[#e6ebf2]" />
             )}
           </Button>
         </div>
@@ -38,35 +50,35 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             to="/"
             className={({ isActive }) =>
               cn(
-                "flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-all",
+                'flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-all',
                 isActive
-                  ? "bg-[#6186b8] text-[#e6ebf2]"
-                  : "text-[#e6ebf2] hover:bg-[#6186b8]/50 hover:text-[#e6ebf2]",
-                isCollapsed && "justify-center"
+                  ? 'bg-[#6186b8] text-[#e6ebf2]'
+                  : 'text-[#e6ebf2] hover:bg-[#6186b8]/50 hover:text-[#e6ebf2]',
+                isCollapsed && 'justify-center'
               )
             }
-            title={isCollapsed ? "Início" : undefined}
+            title={isCollapsed ? 'Início' : undefined}
           >
             <Home className="w-5 h-5" />
-            {!isCollapsed && "Início"}
+            {!isCollapsed && 'Início'}
           </NavLink>
-          
+
           <NavLink
             to="/chat"
             className={({ isActive }) =>
               cn(
-                "flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-all",
+                'flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-all',
                 isActive
-                  ? "bg-[#6186b8] text-[#e6ebf2]"
-                  : "text-[#e6ebf2] hover:bg-[#6186b8]/50 hover:text-[#e6ebf2]",
-                isCollapsed && "justify-center"
+                  ? 'bg-[#6186b8] text-[#e6ebf2]'
+                  : 'text-[#e6ebf2] hover:bg-[#6186b8]/50 hover:text-[#e6ebf2]',
+                isCollapsed && 'justify-center'
               )
             }
-            title={isCollapsed ? "Chat" : undefined}
+            title={isCollapsed ? 'Chat' : undefined}
             end
           >
             <MessageSquare className="w-5 h-5" />
-            {!isCollapsed && "Chat"}
+            {!isCollapsed && 'Chat'}
           </NavLink>
 
           {/* Chat Sessions List */}
@@ -78,20 +90,25 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                   to={`/chat/${session.id}`}
                   className={({ isActive }) =>
                     cn(
-                      "flex items-center px-3 py-2 text-xs rounded-lg transition-all truncate",
+                      'flex items-center px-3 py-2 text-xs rounded-lg transition-all truncate',
                       isActive
-                        ? "bg-[#6186b8] text-[#e6ebf2]"
-                        : "text-[#e6ebf2]/80 hover:bg-[#6186b8]/30 hover:text-[#e6ebf2]"
+                        ? 'bg-[#6186b8] text-[#e6ebf2]'
+                        : 'text-[#e6ebf2]/80 hover:bg-[#6186b8]/30 hover:text-[#e6ebf2]'
                     )
                   }
-                  title={session.title || `Chat ${session.id}`}
+                  title={session.title || 'Nova Conversa'}
                 >
-                  {session.title || `Chat ${session.id}`}
+                  {({ isActive }) => (
+                    <SessionTitle
+                      title={session.title || 'Nova Conversa'}
+                      isActive={isActive}
+                    />
+                  )}
                 </NavLink>
               ))}
             </div>
           )}
-          
+
           {/*<NavLink
             to="/dashboard"
             className={({ isActive }) =>
@@ -115,19 +132,19 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             to="/settings"
             className={({ isActive }) =>
               cn(
-                "flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-all",
+                'flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-all',
                 isActive
-                  ? "bg-[#6186b8] text-[#e6ebf2]"
-                  : "text-[#e6ebf2] hover:bg-[#6186b8]/50 hover:text-[#e6ebf2]",
-                isCollapsed && "justify-center"
+                  ? 'bg-[#6186b8] text-[#e6ebf2]'
+                  : 'text-[#e6ebf2] hover:bg-[#6186b8]/50 hover:text-[#e6ebf2]',
+                isCollapsed && 'justify-center'
               )
             }
-            title={isCollapsed ? "Ajustes" : undefined}
+            title={isCollapsed ? 'Ajustes' : undefined}
           >
             <Settings className="w-5 h-5" />
-            {!isCollapsed && "Ajustes"}
+            {!isCollapsed && 'Ajustes'}
           </NavLink>
-          
+
           {/*<NavLink
             to="/profile"
             className={({ isActive }) =>
@@ -148,11 +165,9 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto">
-        {children}
-      </main>
+      <main className="flex-1 overflow-auto">{children}</main>
     </div>
-  );
-};
+  )
+}
 
-export default Layout;
+export default Layout
