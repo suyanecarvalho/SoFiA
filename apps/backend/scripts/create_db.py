@@ -10,13 +10,18 @@ from src.db.database.connection import engine, SessionLocal
 from src.db.models.models import Category
 
 INITIAL_CATEGORIES = [
-    {"id": 1, "name": "Alimentação"},
+    {"id": 1, "name": "Lazer"},
     {"id": 2, "name": "Transporte"},
-    {"id": 3, "name": "Contas de Casa"},
-    {"id": 4, "name": "Saúde"},
-    {"id": 5, "name": "Lazer & Entretenimento"},
-    {"id": 6, "name": "Educação"},
-    {"id": 7, "name": "Gastos Pessoais"},
+    {"id": 3, "name": "Impostos"},
+    {"id": 4, "name": "Tecnologia"},
+    {"id": 5, "name": "Viagem"},
+    {"id": 6, "name": "Pets"},
+    {"id": 7, "name": "Outros"},
+    {"id": 8, "name": "Alimentação"},
+    {"id": 9, "name": "Casa"},
+    {"id": 10, "name": "Educação"},
+    {"id": 11, "name": "Saúde"},
+    {"id": 12, "name": "Despesas Pessoais"},
 ]
 
 
