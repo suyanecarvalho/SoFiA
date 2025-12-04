@@ -63,7 +63,7 @@ export function EvolutionBarChart({ data, isLoading }: Props) {
                 fontSize={12}
                 tickLine={false}
                 axisLine={false}
-                tickFormatter={(value) => `R$${value / 1000}k`}
+                tickFormatter={(value) => `R$${value}`}
               />
               <ChartTooltip
                 cursor={false}

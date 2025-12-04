@@ -22,7 +22,7 @@ export function DashboardSummaryCards({ data, isLoading }: Props) {
     new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
-    }).format(val / 100)
+    }).format(val)
 
   const formatPct = (val: number) => {
     const sign = val >= 0 ? '+' : ''

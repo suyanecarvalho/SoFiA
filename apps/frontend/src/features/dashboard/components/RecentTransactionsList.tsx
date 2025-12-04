@@ -29,13 +29,6 @@ export function RecentTransactionsList({ data, isLoading }: Props) {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Transações Recentes</CardTitle>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-primary hover:text-primary/80"
-        >
-          Ver todas
-        </Button>
       </CardHeader>
       <CardContent>
         <div className="space-y-0">
