@@ -11,11 +11,23 @@ class TransactionService:
         self.category_crud = crud_category
 
     def create_transaction(
-            self, user_id: int, transaction_data: transaction_schema.TransactionCreate
+            self,
+            user_id: int,
+            transaction_data: transaction_schema.TransactionCreate,
+            check_salary_trigger: bool = True
     ) -> models.Transaction:
-        return crud_transaction.create_transaction(
+        new_tx = crud_transaction.create_transaction(
             db=self.db, transaction=transaction_data, user_id=user_id
         )
+        if check_salary_trigger and new_tx.reference_date:
+            from src.services.recurrence_service import RecurrenceService
+            recurrence_service = RecurrenceService(self.db)
+            recurrence_service.ensure_salary_for_month(
+                user_id=user_id,
+                reference_date=new_tx.reference_date
+            )
+
+        return new_tx
 
     def get_transactions(
             self, filters: Dict[str, Any]
