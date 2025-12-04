@@ -17,13 +17,11 @@ class TransactionCore(BaseModel):
 class ExpenseCreate(TransactionCore):
     transaction_type: Literal[TransactionType.EXPENSE] = TransactionType.EXPENSE
     category_id: int
-    is_superfluous: bool = False
 
 
 class IncomeCreate(TransactionCore):
     transaction_type: Literal[TransactionType.INCOME] = TransactionType.INCOME
     category_id: Literal[None] = None
-    is_superfluous: Literal[None] = None
 
 
 TransactionCreate = Annotated[

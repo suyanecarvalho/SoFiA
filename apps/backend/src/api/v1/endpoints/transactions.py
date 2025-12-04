@@ -22,7 +22,7 @@ def create_new_transaction(
     """
     Create a new transaction (either an expense or an income).
 
-    - To create an **expense**, provide `transaction_type: "expense"`, a `category_id`, and optionally `is_superfluous`.
+    - To create an **expense**, provide `transaction_type: "expense"`, a `category_id`.
     - To create an **income**, provide `transaction_type: "income"` and omit the category and superfluous fields.
     """
     return crud_transaction.create_transaction(db=db, transaction=transaction)
@@ -35,7 +35,6 @@ def read_transactions(
     date_from: Optional[datetime.date] = None,
     date_to: Optional[datetime.date] = None,
     category_id: Optional[int] = None,
-    is_superfluous: Optional[bool] = None,
     transaction_type: Optional[transaction_schema.TransactionType] = None,
     db: Session = Depends(get_db),
 ):
@@ -49,7 +48,6 @@ def read_transactions(
         date_from=date_from,
         date_to=date_to,
         category_id=category_id,
-        is_superfluous=is_superfluous,
         transaction_type=transaction_type,
     )
     return transactions

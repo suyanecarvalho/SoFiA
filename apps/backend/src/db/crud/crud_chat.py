@@ -124,7 +124,7 @@ def update_session_state(
             db,
             session_id=1,
             pending_tool="expense",
-            collected_params={"description": "makeup", "is_superfluous": True},
+            collected_params={"description": "makeup"},
             missing_fields=["amount", "category_name"]
         )
     """

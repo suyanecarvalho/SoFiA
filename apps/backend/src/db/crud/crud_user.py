@@ -1,46 +1,61 @@
 import datetime
+from typing import Any
+
 from sqlalchemy.orm import Session
+
+from src.db.models.models import User
 from ..models import models
 from ..schemas import user as user_schema
 
 
-def get_user(db: Session, user_id: int) -> models.User | None:
+def get_user(db: Session, user_id: int) -> type[User]:
     """
     Retrieve a single user by their ID.
     """
     return db.query(models.User).filter(models.User.id == user_id).first()
 
 
-def get_existing_user(db: Session) -> models.User | None:
+def get_existing_user(db: Session) -> type[User]:
     """
     Check if ANY user exists in the system.
     """
     return db.query(models.User).first()
 
 
-def create_user(db: Session, user: user_schema.UserCreate) -> models.User:
+def create_user(
+        db: Session, user: user_schema.UserCreate, commit: bool = True
+) -> models.User:
     """
     Create a new user.
-    Explicitly sets updated_at to now().
+
+    Args:
+        db: Database session.
+        user: User creation schema.
+        commit: If True, commits transaction immediately.
+                If False, flushes only (useful for atomic multi-step operations).
     """
     now = datetime.datetime.now()
     db_user = models.User(
         name=user.name,
         profile_pic=user.profile_pic,
         api_key=user.api_key,
-        salary=user.salary,
-        payday=user.payday,
         updated_at=now,
     )
     db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
+
+    if commit:
+        db.commit()
+        db.refresh(db_user)
+    else:
+        db.flush()
+        db.refresh(db_user)
+
     return db_user
 
 
 def update_user(
-    db: Session, user_id: int, user_update: user_schema.UserUpdate
-) -> models.User | None:
+        db: Session, user_id: int, user_update: user_schema.UserUpdate
+) -> type[User] | None:
     """
     Update an existing user.
     Updates updated_at to now().

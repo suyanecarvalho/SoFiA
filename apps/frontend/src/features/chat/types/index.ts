@@ -57,7 +57,6 @@ export interface Transaction {
   description: string
   transaction_type: TransactionType
   category_id: number | null
-  is_superfluous: boolean | null
   user_id: number
   created_at: string | null
   updated_at: string | null
@@ -68,7 +67,6 @@ export interface CreateExpenseRequest {
   description: string
   transaction_type: 'expense'
   category_id: number
-  is_superfluous?: boolean
 }
 
 export interface CreateIncomeRequest {
@@ -76,7 +74,6 @@ export interface CreateIncomeRequest {
   description: string
   transaction_type: 'income'
   category_id?: null
-  is_superfluous?: null
 }
 
 

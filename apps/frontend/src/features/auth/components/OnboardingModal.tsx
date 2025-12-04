@@ -47,7 +47,7 @@ export function OnboardingModal() {
   })
 
   const onSubmit = (data: FormData) => {
-    const salaryValue = data.salary && data.salary.trim() !== '' ? parseInt(data.salary) : undefined
+    const salaryValue = data.salary && data.salary.trim() !== '' ? parseInt(data.salary)*100 : undefined
     const paydayValue = data.payday && data.payday.trim() !== '' ? parseInt(data.payday) : undefined
     
     createUser({

@@ -70,6 +70,9 @@ class ChatService:
         "Comprei um vestido" → {{"intent": "expense"}}
         "Gastei 50 reais no almoço" → {{"intent": "expense"}}
         "Quanto eu gastei esse mês?" → {{"intent": "query"}}
+        "Assinei o Netflix por 40 reais todo dia 5" → {{"intent": "recurrence"}}
+        "Meu salário é 5000 todo dia 1" → {{"intent": "recurrence"}}
+        "Vou pagar aluguel todo mês" → {{"intent": "recurrence"}}
         "Me mostre minhas compras recentes" → {{"intent": "query"}}
         "Quanto gastei com Uber?" → {{"intent": "query"}}
         "Recebi meu pagamento" → {{"intent": "income"}}
@@ -117,7 +120,6 @@ class ChatService:
         required = schema.get("required", [])
         missing = []
         for field in required:
-            if field == "is_superfluous": continue
             val = params.get(field)
             if val in (None, ""):
                 missing.append(field)

@@ -30,7 +30,6 @@ class TransactionService:
             date_to=filters.get("date_to"),
             limit=filters.get("limit"),
             category_id=filters.get("category_id"),
-            is_superfluous=filters.get("is_superfluous"),
             transaction_type=filters.get("transaction_type")
         )
 

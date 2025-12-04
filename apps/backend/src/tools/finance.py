@@ -23,7 +23,6 @@ class ExpenseTool(BaseTool):
                 "amount": {"type": "integer", "description": "Amount in CENTS"},
                 "description": {"type": "string"},
                 "category_name": {"type": "string", "enum": categories},
-                "is_superfluous": {"type": "boolean"},
                 "reference_date": {
                     "type": "string",
                     "format": "date",
@@ -117,7 +116,6 @@ class IncomeTool(BaseTool):
     def execute(self, params: Dict[str, Any], user_id: int) -> Tuple[str, str]:
         params["transaction_type"] = "income"
         params["category_id"] = None
-        params["is_superfluous"] = None
         logger.info(f"Tool Executing: Income", extra={"payload": params})
         adapter = TypeAdapter(transaction_schema.TransactionCreate)
         validated_data = adapter.validate_python(params)
@@ -147,7 +145,6 @@ class QueryTool(BaseTool):
             "properties": {
                 "start_date": {"type": "string", "format": "date", "description": "YYYY-MM-DD"},
                 "end_date": {"type": "string", "format": "date", "description": "YYYY-MM-DD"},
-                "is_superfluous": {"type": "boolean"},
                 "category_name": {"type": "string", "enum": categories},
                 "limit": {"type": "integer"},
                 "transaction_type": {"type": "string", "enum": ["expense", "income"]}
@@ -175,7 +172,6 @@ class QueryTool(BaseTool):
         - start_date (YYYY-MM-DD): derived from "this month", "last week", "in January".
         - end_date (YYYY-MM-DD): derived from "until now", "yesterday", end of month.
         - category_name (string): MUST be one of the available categories.
-        - is_superfluous (boolean): true if user asks for "unnecessary" money.
         - transaction_type (string): 'expense' or 'income' if specified.
 
         EXAMPLES:
@@ -199,7 +195,6 @@ class QueryTool(BaseTool):
                 filters["date_to"] = datetime.strptime(params["end_date"], "%Y-%m-%d").date()
             except ValueError:
                 logger.warning(f"Invalid end_date format: {params['end_date']}")
-        if "is_superfluous" in params: filters["is_superfluous"] = params["is_superfluous"]
         if "transaction_type" in params: filters["transaction_type"] = params["transaction_type"]
         cat_name = params.get("category_name")
         if cat_name:

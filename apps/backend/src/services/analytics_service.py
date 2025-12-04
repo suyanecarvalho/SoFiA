@@ -42,10 +42,7 @@ class AnalyticsService:
         curr_expense = get_sum(curr_start, curr_end, TransactionType.EXPENSE)
         prev_income = get_sum(prev_start, prev_end, TransactionType.INCOME)
         prev_expense = get_sum(prev_start, prev_end, TransactionType.EXPENSE)
-        user = self.db.query(User).filter(User.id == self.user_id).first()
-        user_salary = (user.salary * 100) if user and user.salary else 0
-        curr_income_with_salary = curr_income + user_salary
-        curr_savings = curr_income_with_salary - curr_expense
+        curr_savings = curr_income - curr_expense
         prev_savings = prev_income - prev_expense
         total_income_lifetime = self.db.query(func.sum(Transaction.amount)).filter(
             Transaction.user_id == self.user_id,
@@ -55,7 +52,7 @@ class AnalyticsService:
             Transaction.user_id == self.user_id,
             Transaction.transaction_type == TransactionType.EXPENSE
         ).scalar() or 0
-        total_balance = total_income_lifetime - total_expense_lifetime + user_salary
+        total_balance = total_income_lifetime - total_expense_lifetime
         def calc_change(curr, prev):
             if prev == 0:
                 return 100.0 if curr > 0 else 0.0
@@ -63,10 +60,10 @@ class AnalyticsService:
 
         return schemas.DashboardSummary(
             total_balance=total_balance,
-            total_income=curr_income_with_salary,
+            total_income=curr_income,
             total_expense=curr_expense,
             total_savings=curr_savings,
-            income_change_pct=calc_change(curr_income_with_salary, prev_income),
+            income_change_pct=calc_change(curr_income, prev_income),
             expense_change_pct=calc_change(curr_expense, prev_expense),
             savings_change_pct=calc_change(curr_savings, prev_savings)
         )
