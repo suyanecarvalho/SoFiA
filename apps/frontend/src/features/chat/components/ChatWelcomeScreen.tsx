@@ -8,10 +8,12 @@ export function ChatWelcomeScreen({
   onSuggestionClick,
 }: ChatWelcomeScreenProps) {
   const suggestions = [
-    'Criar meta Viagem R$ 300/mês',
-    'Quanto gastei em transporte este mês?',
-    'Adicionar gasto com alimentação',
-    'Como economizar 100 reais por semana?',
+    'Almoço R$ 45,90',
+    'Jantei fora ontem',
+    'Uber R$ 22,00 ontem',
+    'Quanto já gastei com Mercado este mês?',
+    'Como posso economizar mais?',
+    'Quais são minhas maiores despesas?',
   ]
 
   return (

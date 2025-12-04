@@ -5,6 +5,7 @@ import {
   useCategorySpending,
   useMonthlyEvolution,
   useRecentTransactions,
+  useAllTransactions,
 } from '@/features/dashboard/hooks/useAnalytics'
 
 import { DashboardSummaryCards } from '@/features/dashboard/components/DashboardSummaryCards'
@@ -22,6 +23,7 @@ const Dashboard = () => {
   const categoryQuery = useCategorySpending(month, year)
   const evolutionQuery = useMonthlyEvolution(6)
   const recentTxQuery = useRecentTransactions(5)
+  const allTxQuery = useAllTransactions()
 
   return (
     <div className="p-8 space-y-8 animate-in fade-in duration-500">
@@ -58,8 +60,8 @@ const Dashboard = () => {
       </div>
 
       <RecentTransactionsList
-        data={recentTxQuery.data}
-        isLoading={recentTxQuery.isLoading}
+        data={allTxQuery.data}
+        isLoading={allTxQuery.isLoading}
       />
     </div>
   )

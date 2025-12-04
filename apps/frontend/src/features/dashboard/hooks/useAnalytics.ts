@@ -66,3 +66,16 @@ export function useRecentTransactions(limit: number = 5) {
       })),
   })
 }
+
+export function useAllTransactions() {
+  return useQuery({
+    queryKey: ['all-transactions'],
+    queryFn: () => analyticsService.getAllTransactions(),
+    ...dashboardQueryOptions,
+    select: (data) =>
+      data.map((tx) => ({
+        ...tx,
+        amount: formatters.fromCents(tx.amount),
+      })),
+  })
+}
