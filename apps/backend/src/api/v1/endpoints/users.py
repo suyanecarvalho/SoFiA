@@ -10,6 +10,7 @@ from src.db.database.connection import get_db
 from src.utils.constants import APPLICATION_USER_ID
 from src.utils.enums import TransactionType, RecurrenceFrequency
 from src.services.transaction_service import TransactionService
+from src.services.recurrence_service import RecurrenceService
 from src.api.deps import get_transaction_service
 from src.core.logger import logger
 
@@ -55,8 +56,10 @@ def create_user(
     - This system allows **only one user**.
 
     **Automatic Salary Setup**:
-    - If `salary` (cents) and `payday` (day 1-31) are provided,
-      automatically creates a monthly recurrent income in the same atomic transaction.
+    - If `salary` and `payday` are provided:
+      1. Creates a salary transaction for the **previous month** (History).
+      2. Creates a recurrence rule.
+      3. Checks if the **current month's** salary is due and generates it if missing.
     """
     existing_user = crud_user.get_existing_user(db)
     if existing_user:
@@ -71,7 +74,9 @@ def create_user(
         if user.salary and user.payday:
             today = datetime.date.today()
             safe_day = min(user.payday, 28)
-            ref_date = datetime.date(today.year, today.month, safe_day)
+            first_of_curr_month = today.replace(day=1)
+            last_month_obj = first_of_curr_month - datetime.timedelta(days=1)
+            ref_date = datetime.date(last_month_obj.year, last_month_obj.month, safe_day)
             tx_create = transaction_schema.IncomeCreate(
                 amount=user.salary,
                 description="Salário Mensal",
@@ -93,8 +98,17 @@ def create_user(
             )
             new_user.salary_recurrence_id = recurrence.id
             db.add(new_user)
-        db.commit()
-        db.refresh(new_user)
+            db.commit()
+            db.refresh(new_user)
+            try:
+                recurrence_service = RecurrenceService(db)
+                recurrence_service.process_daily_recurrences()
+            except Exception as e:
+                logger.error(f"Failed to auto-process recurrences during user creation: {e}")
+        else:
+            db.commit()
+            db.refresh(new_user)
+
         return new_user
     except Exception as e:
         logger.error(f"Failed to create user: {e}", exc_info=True)

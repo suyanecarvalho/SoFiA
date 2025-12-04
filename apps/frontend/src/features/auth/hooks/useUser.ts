@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { userService } from '../../auth/services/userService.ts'
-import { useUserStore } from '@/stores/userStore'
-import type { CreateUserRequest, UpdateUserRequest } from '../types'
+import { userService } from '../services/userService.ts'
+import { useUserStore } from '@/stores/userStore.ts'
+import type { CreateUserRequest, UpdateUserRequest } from '../../chat/types'
 
 export function useCreateUser() {
   const setUser = useUserStore((state) => state.setUser)
@@ -12,6 +12,10 @@ export function useCreateUser() {
     onSuccess: (user) => {
       setUser(user)
       queryClient.setQueryData(['me'], user)
+      queryClient.invalidateQueries({ queryKey: ['dashboard-summary'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard-categories'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard-evolution'] })
+      queryClient.invalidateQueries({ queryKey: ['recent-transactions'] })
     },
   })
 }

@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useUIStore } from '@/stores/uiStore'
-import { useCreateUser } from '@/features/chat/hooks/useUser'
+import { useCreateUser } from '@/features/auth/hooks/useUser.ts'
 import { Key, User, DollarSign, Calendar, Eye, EyeOff } from 'lucide-react'
 import { useState } from 'react'
 
