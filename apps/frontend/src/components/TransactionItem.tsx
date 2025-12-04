@@ -1,8 +1,35 @@
-import { ShoppingCart, TrendingUp, Car, Home, Tv, Heart } from "lucide-react";
+import {
+  ShoppingCart,
+  TrendingUp,
+  Car,
+  Home,
+  Tv,
+  Heart,
+  Plane, 
+  DogIcon as Paw,
+  Percent,
+  BookOpen,
+  Cpu,
+  Gift,
+  HelpCircle,
+} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 interface TransactionItemProps {
-  icon: "shopping" | "income" | "transport" | "housing" | "entertainment" | "health";
+  icon:
+    | "shopping"
+    | "income"
+    | "transport"
+    | "housing"
+    | "entertainment"
+    | "health"
+    | "travel"
+    | "pets"
+    | "taxes"
+    | "technology"
+    | "education"
+    | "personal"
+    | "other";
   title: string;
   category: string;
   amount: number;
@@ -17,6 +44,13 @@ const iconMap: Record<string, LucideIcon> = {
   housing: Home,
   entertainment: Tv,
   health: Heart,
+  travel: Plane, 
+  pets: Paw,
+  taxes: Percent,
+  technology: Cpu,
+  education: BookOpen,
+  personal: Gift,
+  other: HelpCircle,
 };
 
 const TransactionItem = ({ icon, title, category, amount, date, type }: TransactionItemProps) => {

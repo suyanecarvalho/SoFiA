@@ -56,7 +56,7 @@ export interface Transaction {
   amount: number
   description: string
   transaction_type: TransactionType
-  category_id: number | null
+  category_id: number 
   user_id: number
   created_at: string | null
   updated_at: string | null
