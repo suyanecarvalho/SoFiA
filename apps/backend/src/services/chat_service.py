@@ -30,7 +30,7 @@ class ChatService:
             case "remote":
                 user = crud_user.get_user(self.db, user_id=APPLICATION_USER_ID)
                 if not user or not user.api_key:
-                    raise HTTPException(status_code=503, detail="Gemini API key not configured.")
+                    raise HTTPException(status_code=503, detail="Chave da API do Gemini API não configurada.")
                 self.llm = get_llm_instance("remote", model_name=model_name, apiKey=user.api_key)
             case "local":
                 self.llm = get_llm_instance("local", model_name=model_name)

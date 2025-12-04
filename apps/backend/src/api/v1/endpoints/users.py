@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Path
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from src.db.crud import crud_user
 from src.db.schemas import user as user_schema
 from src.db.database.connection import get_db
-from src.utils.constants import APPLICATION_USER_ID  # <--- Imported constant
+from src.utils.constants import APPLICATION_USER_ID
 
 router = APIRouter()
 

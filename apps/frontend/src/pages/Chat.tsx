@@ -11,14 +11,10 @@ import TypingIndicator from '../components/TypingIndicator'
 
 import { useMessages, useSendMessage } from '@/features/chat/hooks/useMessages'
 import { useCreateSession } from '@/features/chat/hooks/useSessions'
-import type { ModelPreference } from '@/features/chat/types'
 
 const Chat = () => {
   const { sessionId } = useParams<{ sessionId: string }>()
   const [message, setMessage] = useState('')
-  const [modelPreference, setModelPreference] =
-    useState<ModelPreference>('remote')
-  const [modelName, setModelName] = useState<string>('gemini-2.5-pro')
   const scrollRef = useRef<HTMLDivElement>(null)
   const { data: serverMessages } = useMessages(sessionId || null)
   const { mutate: sendMessage, isPending: isSending } = useSendMessage()
@@ -43,8 +39,7 @@ const Chat = () => {
       if (!sessionId) {
         await createSession({
           message: textToSend.trim(),
-          model_preference: modelPreference,
-          model_name: modelName,
+          model_preference: 'remote',
         })
       } else {
         sendMessage(
@@ -52,8 +47,7 @@ const Chat = () => {
             sessionId: sessionId,
             data: {
               message: textToSend.trim(),
-              model_preference: modelPreference,
-              model_name: modelName,
+              model_preference: 'remote',
             },
           },
           {
@@ -65,8 +59,6 @@ const Chat = () => {
         )
       }
     } catch (error) {
-      console.error(error)
-      toast.error('Erro ao iniciar conversa')
       setMessage(textToSend)
     }
   }
@@ -147,9 +139,6 @@ const Chat = () => {
               <Send className="w-4 h-4" />
             </Button>
           </div>
-          <p className="text-xs text-center text-muted-foreground">
-            Utilizando modelo {modelName}
-          </p>
         </div>
       </div>
     </div>
