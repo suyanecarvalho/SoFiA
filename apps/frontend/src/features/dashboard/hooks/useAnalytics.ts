@@ -2,11 +2,18 @@ import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { analyticsService } from '../services/analyticsService'
 import { formatters } from '@/lib/formatters'
 
+const dashboardQueryOptions = {
+  staleTime: 0,
+  refetchOnMount: true,
+  refetchOnWindowFocus: true,
+}
+
 export function useDashboardSummary(month: number, year: number) {
   return useQuery({
     queryKey: ['dashboard-summary', month, year],
     queryFn: () => analyticsService.getSummary(month, year),
     placeholderData: keepPreviousData,
+    ...dashboardQueryOptions, // Apply realtime rules
     select: (data) => ({
       ...data,
       total_balance: formatters.fromCents(data.total_balance),
@@ -22,6 +29,7 @@ export function useCategorySpending(month: number, year: number) {
     queryKey: ['dashboard-categories', month, year],
     queryFn: () => analyticsService.getCategorySpending(month, year),
     placeholderData: keepPreviousData,
+    ...dashboardQueryOptions,
     select: (data) =>
       data.map((item) => ({
         ...item,
@@ -34,7 +42,8 @@ export function useMonthlyEvolution(months: number = 6) {
   return useQuery({
     queryKey: ['dashboard-evolution', months],
     queryFn: () => analyticsService.getMonthlyEvolution(months),
-    staleTime: 1000 * 60 * 10,
+    // Removed the 10 minute staleTime override
+    ...dashboardQueryOptions,
     select: (data) =>
       data.map((item) => ({
         ...item,
@@ -49,6 +58,7 @@ export function useRecentTransactions(limit: number = 5) {
   return useQuery({
     queryKey: ['recent-transactions', limit],
     queryFn: () => analyticsService.getRecentTransactions(limit),
+    ...dashboardQueryOptions,
     select: (data) =>
       data.map((tx) => ({
         ...tx,
