@@ -11,12 +11,12 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     <div className="flex h-screen bg-background overflow-hidden">
       {/* Sidebar */}
       <aside className={cn(
-        "bg-sidebar flex flex-col transition-all duration-300" ,
+        "bg-[#4e6e97] flex flex-col transition-all duration-300" ,
         isCollapsed ? "w-[70px]" : "w-[180px]"
       )}>
         <div className="p-3 flex items-center justify-between border-b border-sidebar-border">
           {!isCollapsed && (
-            <span className="text-lg font-bold text-sidebar-foreground">SofIA</span>
+            <span className="text-lg font-bold text-[#e6ebf2]">SofIA</span>
           )}
           <Button
             variant="ghost"
@@ -24,9 +24,9 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             onClick={() => setIsCollapsed(!isCollapsed)}
           >
             {isCollapsed ? (
-              <ChevronRight className="h-4 w-4"/>
+              <ChevronRight className="h-4 w-4 text-[#e6ebf2]"/>
             ) : (
-              <ChevronLeft className="h-4 w-4"/>
+              <ChevronLeft className="h-4 w-4 text-[#e6ebf2]"/>
             )}
           </Button>
         </div>
@@ -38,8 +38,8 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               cn(
                 "flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-all",
                 isActive
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
+                  ? "bg-[#6186b8] text-[#e6ebf2]"
+                  : "text-[#e6ebf2] hover:bg-[#6186b8]/50 hover:text-[#e6ebf2]",
                 isCollapsed && "justify-center"
               )
             }
@@ -55,8 +55,8 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               cn(
                 "flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-all",
                 isActive
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
+                  ? "bg-[#6186b8] text-[#e6ebf2]"
+                  : "text-[#e6ebf2] hover:bg-[#6186b8]/50 hover:text-[#e6ebf2]",
                 isCollapsed && "justify-center"
               )
             }
@@ -91,8 +91,8 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               cn(
                 "flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-all",
                 isActive
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
+                  ? "bg-[#6186b8] text-[#e6ebf2]"
+                  : "text-[#e6ebf2] hover:bg-[#6186b8]/50 hover:text-[#e6ebf2]",
                 isCollapsed && "justify-center"
               )
             }
@@ -102,14 +102,14 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             {!isCollapsed && "Ajustes"}
           </NavLink>
           
-          <NavLink
+          {/*<NavLink
             to="/profile"
             className={({ isActive }) =>
               cn(
                 "flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-all",
                 isActive
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
+                  ? "bg-[#6186b8] text-[#e6ebf2]"
+                  : "text-[#e6ebf2] hover:bg-[#6186b8]/50 hover:text-[#e6ebf2]",
                 isCollapsed && "justify-center"
               )
             }
@@ -117,7 +117,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           >
             <User className="w-5 h-5" />
             {!isCollapsed && "Perfil"}
-          </NavLink>
+          </NavLink>*/}
         </div>
       </aside>
 

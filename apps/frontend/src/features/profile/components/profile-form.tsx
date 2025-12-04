@@ -7,8 +7,9 @@ import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
-import { Key, User as UserIcon, Calendar, Loader2, DollarSign } from 'lucide-react'
+import { Key, User as UserIcon, Calendar, Loader2, DollarSign, Eye, EyeOff } from 'lucide-react'
 import type { ProfileFormValues } from '@/features/profile/types'
+import { useState } from 'react'
 
 interface ProfileFormProps {
   form: UseFormReturn<ProfileFormValues>
@@ -29,6 +30,8 @@ export function ProfileForm({
     register,
     formState: { errors, isDirty },
   } = form
+
+  const [show, setShow] = useState(false);
 
   return (
     <Card className="p-6">
@@ -71,13 +74,23 @@ export function ProfileForm({
               <Key className="w-4 h-4" />
               Chave de API do Gemini
             </Label>
-            <Input
-              id="api_key"
-              type="password"
-              placeholder="sk-..."
-              {...register('api_key')}
-              disabled={isPending}
-            />
+            <div className='flex gap-2'>
+              <Input
+                id="api_key"
+                type={show ? 'text' : 'password'}
+                placeholder="sk-..."
+                {...register('api_key')}
+                disabled={isPending}
+              />
+              <Button
+                type="button"
+                onClick={() => setShow(!show)}
+                className="bg-muted hover:bg-muted/80"
+                disabled={isPending}
+              >
+                {show ? <EyeOff className="w-4 h-4 text-muted-foreground" /> : <Eye className="w-4 h-4 text-muted-foreground" />}
+              </Button>
+            </div>
           </div>
 
           <div className="space-y-2">
