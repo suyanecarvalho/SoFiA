@@ -16,6 +16,8 @@ export interface User {
   name: string
   profile_pic: string | null
   api_key: string | null
+  salary: number | null
+  payday: number | null
   created_at: string | null
   updated_at: string | null
 }
@@ -24,12 +26,16 @@ export interface CreateUserRequest {
   name: string
   profile_pic?: string
   api_key?: string
+  salary?: number
+  payday?: number
 }
 
 export interface UpdateUserRequest {
   name?: string
   profile_pic?: string
   api_key?: string
+  salary?: number
+  payday?: number
 }
 
 export interface Category {

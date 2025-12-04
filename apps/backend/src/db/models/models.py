@@ -23,6 +23,8 @@ class User(Base):
     name = Column(String, nullable=False)
     profile_pic = Column(String, nullable=True)
     api_key = Column(String, nullable=True)
+    salary = Column(Integer, nullable=True)
+    payday = Column(Integer, nullable=True)
     created_at = Column(DateTime, server_default=func.now(), nullable=True)
     updated_at = Column(DateTime, onupdate=func.now(), nullable=True)
     transactions = relationship("Transaction", back_populates="user")

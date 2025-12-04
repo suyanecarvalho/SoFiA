@@ -2,7 +2,7 @@ import datetime
 from typing import Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import func, case
-from src.db.models.models import Transaction, Category
+from src.db.models.models import Transaction, Category, User
 from src.utils.enums import TransactionType
 from src.db.schemas import analytics as schemas
 from src.utils.constants import APPLICATION_USER_ID
@@ -44,7 +44,16 @@ class AnalyticsService:
         curr_expense = get_sum(curr_start, curr_end, TransactionType.EXPENSE)
         prev_income = get_sum(prev_start, prev_end, TransactionType.INCOME)
         prev_expense = get_sum(prev_start, prev_end, TransactionType.EXPENSE)
-        curr_savings = curr_income - curr_expense
+        
+        # Get user salary to include in current month income
+        user = self.db.query(User).filter(User.id == self.user_id).first()
+        # Convert salary from reais to centavos (multiply by 100) to match transaction amounts
+        user_salary = (user.salary * 100) if user and user.salary else 0
+        
+        # Add salary to current month income
+        curr_income_with_salary = curr_income + user_salary
+        
+        curr_savings = curr_income_with_salary - curr_expense
         prev_savings = prev_income - prev_expense
         total_income_lifetime = self.db.query(func.sum(Transaction.amount)).filter(
             Transaction.user_id == self.user_id,
@@ -54,17 +63,19 @@ class AnalyticsService:
             Transaction.user_id == self.user_id,
             Transaction.transaction_type == TransactionType.EXPENSE
         ).scalar() or 0
-        total_balance = total_income_lifetime - total_expense_lifetime
+        
+        # Add salary to total balance
+        total_balance = total_income_lifetime - total_expense_lifetime + user_salary
         def calc_change(curr, prev):
             if prev == 0:
                 return 100.0 if curr > 0 else 0.0
             return ((curr - prev) / prev) * 100
         return schemas.DashboardSummary(
             total_balance=total_balance,
-            total_income=curr_income,
+            total_income=curr_income_with_salary,
             total_expense=curr_expense,
             total_savings=curr_savings,
-            income_change_pct=calc_change(curr_income, prev_income),
+            income_change_pct=calc_change(curr_income_with_salary, prev_income),
             expense_change_pct=calc_change(curr_expense, prev_expense),
             savings_change_pct=calc_change(curr_savings, prev_savings)
         )

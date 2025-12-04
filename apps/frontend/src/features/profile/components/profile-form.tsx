@@ -7,7 +7,7 @@ import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
-import { Key, User as UserIcon, Calendar, Loader2 } from 'lucide-react'
+import { Key, User as UserIcon, Calendar, Loader2, DollarSign } from 'lucide-react'
 import type { ProfileFormValues } from '@/features/profile/types'
 
 interface ProfileFormProps {
@@ -78,6 +78,44 @@ export function ProfileForm({
               {...register('api_key')}
               disabled={isPending}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="salary" className="flex items-center gap-2">
+              <DollarSign className="w-4 h-4" />
+              Salário Mensal
+            </Label>
+            <Input
+              id="salary"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              placeholder="Ex: 5000"
+              {...register('salary')}
+              disabled={isPending}
+            />
+            {errors.salary && (
+              <p className="text-sm text-destructive">{errors.salary.message}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="payday" className="flex items-center gap-2">
+              <Calendar className="w-4 h-4" />
+              Dia de Recebimento
+            </Label>
+            <Input
+              id="payday"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              placeholder="Ex: 5"
+              {...register('payday')}
+              disabled={isPending}
+            />
+            {errors.payday && (
+              <p className="text-sm text-destructive">{errors.payday.message}</p>
+            )}
           </div>
         </div>
 

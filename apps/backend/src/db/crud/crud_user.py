@@ -28,6 +28,8 @@ def create_user(db: Session, user: user_schema.UserCreate) -> models.User:
         name=user.name,
         profile_pic=user.profile_pic,
         api_key=user.api_key,
+        salary=user.salary,
+        payday=user.payday,
         updated_at=now,
     )
     db.add(db_user)

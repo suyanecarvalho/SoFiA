@@ -7,6 +7,8 @@ class UserBase(BaseModel):
     name: str
     profile_pic: Optional[str] = None
     api_key: Optional[str] = None
+    salary: Optional[int] = None
+    payday: Optional[int] = None
 
 
 class UserCreate(UserBase):
@@ -21,6 +23,8 @@ class UserUpdate(BaseModel):
     name: Optional[str] = None
     profile_pic: Optional[str] = None
     api_key: Optional[str] = None
+    salary: Optional[int] = None
+    payday: Optional[int] = None
 
 
 class User(UserBase):

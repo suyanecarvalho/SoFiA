@@ -16,6 +16,8 @@ export function useProfile() {
       name: '',
       api_key: '',
       profile_pic: '',
+      salary: '',
+      payday: '',
     },
   })
 
@@ -25,16 +27,23 @@ export function useProfile() {
         name: user.name || '',
         api_key: user.api_key || '',
         profile_pic: user.profile_pic || '',
+        salary: user.salary?.toString() || '',
+        payday: user.payday?.toString() || '',
       })
     }
   }, [user, form])
 
   const handleSubmit = (data: ProfileFormValues) => {
+    const salaryValue = data.salary && data.salary.trim() !== '' ? parseInt(data.salary) : undefined
+    const paydayValue = data.payday && data.payday.trim() !== '' ? parseInt(data.payday) : undefined
+    
     updateUser(
       {
         name: data.name,
         api_key: data.api_key || undefined,
         profile_pic: data.profile_pic || undefined,
+        salary: salaryValue,
+        payday: paydayValue,
       },
       {
         onSuccess: () => {

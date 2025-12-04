@@ -14,11 +14,15 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useUIStore } from '@/stores/uiStore'
 import { useCreateUser } from '@/features/chat/hooks/useUser'
-import { Key, User } from 'lucide-react'
+import { Key, User, DollarSign, Calendar } from 'lucide-react'
 
 const formSchema = z.object({
   name: z.string().min(2, 'O nome deve ter pelo menos 2 caracteres'),
   api_key: z.string().optional(),
+  salary: z.string(),
+  payday: z.string().optional().refine((val) => !val || (Number(val) >= 1 && Number(val) <= 31), {
+    message: 'O dia de recebimento deve estar entre 1 e 31',
+  }),
 })
 
 type FormData = z.infer<typeof formSchema>
@@ -36,13 +40,20 @@ export function OnboardingModal() {
     defaultValues: {
       name: '',
       api_key: '',
+      salary: '',
+      payday: '',
     },
   })
 
   const onSubmit = (data: FormData) => {
+    const salaryValue = data.salary && data.salary.trim() !== '' ? parseInt(data.salary) : undefined
+    const paydayValue = data.payday && data.payday.trim() !== '' ? parseInt(data.payday) : undefined
+    
     createUser({
       name: data.name,
       api_key: data.api_key || undefined,
+      salary: salaryValue,
+      payday: paydayValue,
     })
   }
   const preventClose = (e: Event) => {
@@ -80,6 +91,49 @@ export function OnboardingModal() {
             )}
           </div>
 
+
+          <div className="space-y-2">
+            <Label htmlFor="salary" className="flex items-center gap-2">
+              <DollarSign className="w-4 h-4" />
+              Salário Mensal
+            </Label>
+            <Input
+              id="salary"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              placeholder="Ex: 5000"
+              {...register('salary')}
+            />
+            {errors.salary && (
+              <p className="text-sm text-destructive">{errors.salary.message}</p>
+            )}
+            <p className="text-xs text-muted-foreground">
+              Opcional. Nos ajuda a fornecer insights melhores.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="payday" className="flex items-center gap-2">
+              <Calendar className="w-4 h-4" />
+              Dia de Recebimento
+            </Label>
+            <Input
+              id="payday"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              placeholder="Ex: 5"
+              {...register('payday')}
+            />
+            {errors.payday && (
+              <p className="text-sm text-destructive">{errors.payday.message}</p>
+            )}
+            <p className="text-xs text-muted-foreground">
+              Dia do mês em que você recebe seu salário.
+            </p>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="api_key" className="flex items-center gap-2">
               <Key className="w-4 h-4" />
@@ -95,7 +149,6 @@ export function OnboardingModal() {
               Você pode configurar isso mais tarde nos ajustes.
             </p>
           </div>
-
           <DialogFooter>
             <Button type="submit" disabled={isPending} className="w-full">
               {isPending ? 'Criando perfil...' : 'Começar a usar'}
