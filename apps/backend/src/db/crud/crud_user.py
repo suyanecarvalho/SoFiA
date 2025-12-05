@@ -1,7 +1,7 @@
 import datetime
 from typing import Any
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from src.db.models.models import User
 from ..models import models
@@ -11,8 +11,17 @@ from ..schemas import user as user_schema
 def get_user(db: Session, user_id: int) -> type[User]:
     """
     Retrieve a single user by their ID.
+    Eagerly loads salary recurrence info to populate the schema.
     """
-    return db.query(models.User).filter(models.User.id == user_id).first()
+    return (
+        db.query(models.User)
+        .options(
+            joinedload(models.User.salary_recurrence)
+            .joinedload(models.RecurrentTransaction.base_transaction)
+        )
+        .filter(models.User.id == user_id)
+        .first()
+    )
 
 
 def get_existing_user(db: Session) -> type[User]:

@@ -16,20 +16,15 @@ export function RecentTransactionsList({ data, isLoading }: Props) {
     return <Skeleton className="h-[300px] w-full rounded-xl" />
   }
 
-  const getIcon = (categoryName: number, type: string) => {
+  const getIcon = (categoryName: string, type: string) => {
     if (type === 'income') return 'income'
-
-    if (categoryName == 1) return 'entertainment'
-    if (categoryName == 2) return 'transport'
-    if (categoryName == 3) return 'taxes'
-    if (categoryName == 4) return 'technology'
-    if (categoryName == 5) return 'travel'
-    if (categoryName == 6) return 'pets'
-    if (categoryName == 7) return 'shopping'
-    if (categoryName == 8) return 'housing'
-    if (categoryName == 9) return 'education'
-    if (categoryName == 10) return 'health'
-    return 'other'
+    const cat = categoryName.toLowerCase()
+    if (cat.includes('aliment')) return 'shopping'
+    if (cat.includes('transport')) return 'transport'
+    if (cat.includes('saúde') || cat.includes('saude')) return 'health'
+    if (cat.includes('lazer')) return 'entertainment'
+    if (cat.includes('moradia')) return 'housing'
+    return 'shopping'
   }
 
   const recentTransactions = data?.slice(0, 5) ?? []
@@ -49,7 +44,7 @@ export function RecentTransactionsList({ data, isLoading }: Props) {
         t.transaction_type === 'income' ? 'Receita' : 'Despesa'
       }
       amount={t.amount}
-      date={new Date(t.created_at || '').toLocaleDateString('pt-BR', {
+      date={new Date(t.reference_date || '').toLocaleDateString('pt-BR', {
         day: '2-digit',
         month: 'short',
       })}
