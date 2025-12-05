@@ -6,6 +6,7 @@ import datetime
 from ....db.crud import crud_transaction
 from ....db.schemas import transaction as transaction_schema
 from ....db.database.connection import get_db
+from ....utils.constants import APPLICATION_USER_ID
 
 router = APIRouter()
 
@@ -25,7 +26,9 @@ def create_new_transaction(
     - To create an **expense**, provide `transaction_type: "expense"`, a `category_id`.
     - To create an **income**, provide `transaction_type: "income"` and omit the category and superfluous fields.
     """
-    return crud_transaction.create_transaction(db=db, transaction=transaction)
+    return crud_transaction.create_transaction(
+        db=db, transaction=transaction, user_id=APPLICATION_USER_ID
+    )
 
 
 @router.get("", response_model=List[transaction_schema.Transaction])

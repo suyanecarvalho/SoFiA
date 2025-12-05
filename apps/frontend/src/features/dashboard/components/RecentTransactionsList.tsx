@@ -29,33 +29,41 @@ export function RecentTransactionsList({ data, isLoading }: Props) {
     if (categoryName == 8) return 'housing'
     if (categoryName == 9) return 'education'
     if (categoryName == 10) return 'health'
-    return 'other'
+    if (categoryName == 11) return 'personal'
+    return 'personal'
   }
 
   const recentTransactions = data?.slice(0, 5) ?? []
   const allTransactions = data ?? []
 
-  const renderTransactionItem = (t: Transaction) => (
-    <TransactionItem
-      key={t.id}
-      icon={
-        getIcon(
-          t.category_id,
-          t.transaction_type
-        ) as any
-      }
-      title={t.description}
-      category={
-        t.transaction_type === 'income' ? 'Receita' : 'Despesa'
-      }
-      amount={t.amount}
-      date={new Date(t.reference_date || '').toLocaleDateString('pt-BR', {
-        day: '2-digit',
-        month: 'short',
-      })}
-      type={t.transaction_type}
-    />
-  )
+  const renderTransactionItem = (t: Transaction) => {
+    // Parse date correctly to avoid timezone issues
+    const dateStr = String(t.reference_date)
+    const [year, month, day] = dateStr.split('-').map(Number)
+    const date = new Date(year, month - 1, day)
+    
+    return (
+      <TransactionItem
+        key={t.id}
+        icon={
+          getIcon(
+            t.category_id,
+            t.transaction_type
+          ) as any
+        }
+        title={t.description}
+        category={
+          t.transaction_type === 'income' ? 'Receita' : 'Despesa'
+        }
+        amount={t.amount}
+        date={date.toLocaleDateString('pt-BR', {
+          day: '2-digit',
+          month: 'short',
+        })}
+        type={t.transaction_type}
+      />
+    )
+  }
 
   return (
     <Card>

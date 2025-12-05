@@ -21,6 +21,7 @@ class RecurrenceService:
     ) -> models.RecurrentTransaction:
         """
         Creates a base transaction AND the recurrence rule in one atomic operation.
+        If it's an income with description "Salário", links it to the user's salary_recurrence_id.
         """
         tx_create_data = {
             "amount": input_data.amount,
@@ -43,7 +44,19 @@ class RecurrenceService:
             recurrence_day=input_data.recurrence_day,
             frequency=input_data.frequency
         )
-        return crud_recurrence.create_recurrence(self.db, rec_create, user_id=user_id, commit=True)
+        recurrence = crud_recurrence.create_recurrence(self.db, rec_create, user_id=user_id, commit=False)
+        
+        # If this is a salary (income with description "Salário"), link it to user
+        if (input_data.transaction_type == "income" and 
+            input_data.description and "salário" in input_data.description.lower()):
+            user = crud_user.get_user(self.db, user_id)
+            if user:
+                user.salary_recurrence_id = recurrence.id
+                self.db.add(user)
+        
+        self.db.commit()
+        self.db.refresh(recurrence)
+        return recurrence
 
     def update_recurrence(
             self, user_id: int, recurrence_id: int, update_data: recurrent_schema.RecurrenceUpdate

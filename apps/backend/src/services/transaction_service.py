@@ -14,7 +14,7 @@ class TransactionService:
             self,
             user_id: int,
             transaction_data: transaction_schema.TransactionCreate,
-            check_salary_trigger: bool = True
+            check_salary_trigger: bool = False
     ) -> models.Transaction:
         new_tx = crud_transaction.create_transaction(
             db=self.db, transaction=transaction_data, user_id=user_id
