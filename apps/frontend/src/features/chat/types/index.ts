@@ -83,6 +83,7 @@ export interface Transaction {
   user_id: number
   created_at: string | null
   updated_at: string | null
+  reference_date : string 
 }
 
 export interface CreateExpenseRequest {
