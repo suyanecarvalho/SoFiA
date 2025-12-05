@@ -8,10 +8,10 @@ export function ChatWelcomeScreen({
   onSuggestionClick,
 }: ChatWelcomeScreenProps) {
   const suggestions = [
-    'Almoço R$ 45,90',
+    'Fiz compras hoje no supermercado',
     'Jantei fora ontem',
-    'Uber R$ 22,00 ontem',
-    'Quanto já gastei com Mercado este mês?',
+    'Voltei de Uber para casa ontem',
+    'Quanto já gastei com alimentação este mês?',
     'Como posso economizar mais?',
     'Quais são minhas maiores despesas?',
   ]

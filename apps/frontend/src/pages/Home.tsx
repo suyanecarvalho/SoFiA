@@ -22,7 +22,6 @@ const Home = () => {
   const summaryQuery = useDashboardSummary(month, year)
   const categoryQuery = useCategorySpending(month, year)
   const evolutionQuery = useMonthlyEvolution(6)
-  const recentTxQuery = useRecentTransactions(5)
   const allTxQuery = useAllTransactions()
 
   return (

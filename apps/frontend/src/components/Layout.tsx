@@ -8,6 +8,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Plus,
+  ChevronUp,
+  ChevronDown,
 } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
@@ -17,6 +19,7 @@ import { SessionTitle } from '@/features/chat/components/SessionTitle'
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const [isCollapsedChats, setIsCollapsedChats] = useState(false)
   const { data: sessions = [] } = useSessions()
 
   return (
@@ -81,9 +84,25 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             {!isCollapsed && 'Chat'}
           </NavLink>
 
+          {!isCollapsed && (
+            <div className='flex items-center justify-between transition-all'>
+              <p className='text-sm font-semibold text-[#e6ebf2]'>Seus chats</p>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => setIsCollapsedChats(!isCollapsedChats)}
+                className='text-[#e6ebf2] hover:text-[#e6ebf2]/80 hover:bg-[#6186b8]/50'
+              >
+                {isCollapsedChats 
+                ? <ChevronDown className="h-4 w-4" /> 
+                : <ChevronUp className="h-4 w-4" />}
+              </Button>
+            </div>
+          )}
+
           {/* Chat Sessions List */}
-          {!isCollapsed && sessions.length > 0 && (
-            <div className="ml-3 space-y-1">
+          {!isCollapsed && !isCollapsedChats && sessions.length > 0 && (
+            <div className="space-y-1 border-t border-[#6186b8] mt-2 pt-2">
               {sessions.slice(0, 5).map((session) => (
                 <NavLink
                   key={session.id}
@@ -93,7 +112,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                       'flex items-center px-3 py-2 text-xs rounded-lg transition-all truncate',
                       isActive
                         ? 'bg-[#6186b8] text-[#e6ebf2]'
-                        : 'text-[#e6ebf2]/80 hover:bg-[#6186b8]/30 hover:text-[#e6ebf2]'
+                        : 'text-[#e6ebf2]/80 hover:bg-[#6186b8]/50 hover:text-[#e6ebf2]'
                     )
                   }
                   title={session.title || 'Nova Conversa'}

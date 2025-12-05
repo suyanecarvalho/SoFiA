@@ -1,6 +1,5 @@
 import type { UseFormReturn } from 'react-hook-form'
 import type { User } from '@/features/chat/types'
-
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
