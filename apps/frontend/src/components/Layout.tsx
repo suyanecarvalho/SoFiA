@@ -2,12 +2,9 @@ import { NavLink } from 'react-router-dom'
 import {
   Home,
   MessageSquare,
-  LayoutDashboard,
   Settings,
-  User,
   ChevronLeft,
   ChevronRight,
-  Plus,
   ChevronUp,
   ChevronDown,
 } from 'lucide-react'
@@ -27,7 +24,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       {/* Sidebar */}
       <aside
         className={cn(
-          'bg-[#4e6e97] flex flex-col transition-all duration-300',
+          'bg-[#4e6e97] dark:bg-[#2c3e50] flex flex-col transition-all duration-300',
           isCollapsed ? 'w-[70px]' : 'w-[180px]'
         )}
       >
@@ -56,7 +53,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                 'flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-all',
                 isActive
                   ? 'bg-[#6186b8] text-[#e6ebf2]'
-                  : 'text-[#e6ebf2] hover:bg-[#6186b8]/50 hover:text-[#e6ebf2]',
+                  : 'text-[#e6ebf2] hover:bg-[#6186b8]/50 hover:text-[#e6ebf2] dark:hover:bg-[#527aa3]/50 hover:text-[#e6ebf2]',
                 isCollapsed && 'justify-center'
               )
             }
@@ -73,7 +70,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                 'flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-all',
                 isActive
                   ? 'bg-[#6186b8] text-[#e6ebf2]'
-                  : 'text-[#e6ebf2] hover:bg-[#6186b8]/50 hover:text-[#e6ebf2]',
+                  : 'text-[#e6ebf2] hover:bg-[#6186b8]/50 hover:text-[#e6ebf2] dark:hover:bg-[#527aa3]/50 hover:text-[#e6ebf2]',
                 isCollapsed && 'justify-center'
               )
             }
@@ -91,7 +88,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                 variant="ghost" 
                 size="icon" 
                 onClick={() => setIsCollapsedChats(!isCollapsedChats)}
-                className='text-[#e6ebf2] hover:text-[#e6ebf2]/80 hover:bg-[#6186b8]/50'
+                className='text-[#e6ebf2] hover:text-[#e6ebf2]/80 hover:bg-[#6186b8]/50 dark:hover:bg-[#527aa3]/50 hover:text-[#e6ebf2]'
               >
                 {isCollapsedChats 
                 ? <ChevronDown className="h-4 w-4" /> 
@@ -112,7 +109,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                       'flex items-center px-3 py-2 text-xs rounded-lg transition-all truncate',
                       isActive
                         ? 'bg-[#6186b8] text-[#e6ebf2]'
-                        : 'text-[#e6ebf2]/80 hover:bg-[#6186b8]/50 hover:text-[#e6ebf2]'
+                        : 'text-[#e6ebf2]/80 hover:bg-[#6186b8]/50 hover:text-[#e6ebf2] dark:hover:bg-[#527aa3]/50 hover:text-[#e6ebf2]'
                     )
                   }
                   title={session.title || 'Nova Conversa'}
@@ -154,7 +151,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                 'flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-all',
                 isActive
                   ? 'bg-[#6186b8] text-[#e6ebf2]'
-                  : 'text-[#e6ebf2] hover:bg-[#6186b8]/50 hover:text-[#e6ebf2]',
+                  : 'text-[#e6ebf2] hover:bg-[#6186b8]/50 hover:text-[#e6ebf2] dark:hover:bg-[#527aa3]/50 hover:text-[#e6ebf2]',
                 isCollapsed && 'justify-center'
               )
             }

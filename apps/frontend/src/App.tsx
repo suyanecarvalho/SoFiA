@@ -10,12 +10,21 @@ import Setting from './pages/Settings'
 import NotFound from '../src/pages/NotFound'
 import { useAuthCheck } from '@/features/auth/hooks/useAuthCheck'
 import { ModalLayer } from '@/components/ModalLayer.tsx'
-import { Settings } from 'lucide-react'
+import { useEffect } from 'react'
+import { useThemeStore } from '@/stores/themeStore.ts'
 
 const queryClient = new QueryClient()
 
 const AppContent = () => {
   useAuthCheck()
+
+  const { theme, setTheme } = useThemeStore();              
+
+  useEffect(() => {
+    const saved = localStorage.getItem('theme') as 'light' | 'dark' | 'system' | null;
+    if (saved) setTheme(saved)
+  }, [])
+
   return (
     <TooltipProvider>
       <Toaster />

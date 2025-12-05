@@ -135,6 +135,7 @@ export function ProfileForm({
 
         <div className="flex justify-end gap-3">
           <Button
+            className='dark:text-[#ffffff]'
             type="button"
             variant="outline"
             onClick={() => form.reset()}
@@ -142,7 +143,7 @@ export function ProfileForm({
           >
             Descartar
           </Button>
-          <Button type="submit" disabled={isPending}>
+          <Button className='bg-[#4e6e97] hover:bg-[#3b5a7a] dark:text-[#ffffff]' type="submit" disabled={isPending}>
             {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Salvar Alterações
           </Button>
